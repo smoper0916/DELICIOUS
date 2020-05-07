@@ -8,8 +8,6 @@ public class GPSManager_NoCompass : MonoBehaviour
     public float latitude;
     public float longitude;
 
-    public bool UseFakeLocation;
-
     [HideInInspector]
     public bool isRunning = true;
 
@@ -26,13 +24,6 @@ public class GPSManager_NoCompass : MonoBehaviour
     private IEnumerator StartLocationService()
     {
         ServiceStatus = LocationServiceStatus.Initializing;
-        // Allow a fake location to be returned when testing on a device that doesn't have GPS
-        if (UseFakeLocation)
-        {
-            Debug.Log(string.Format("Using fake GPS location lat:{0} lon:{1}", latitude, longitude));
-            ServiceStatus = LocationServiceStatus.Running;
-            yield break;
-        }
 
         if (!Input.location.isEnabledByUser)
         {
@@ -43,7 +34,7 @@ public class GPSManager_NoCompass : MonoBehaviour
         // Wait for the GPS to start up so there's time to connect
         Input.location.Start();
 
-        yield return new WaitForSeconds(5);
+        yield return new WaitForSeconds(1);
 
         int maxWait = 20;
         while (Input.location.status == LocationServiceStatus.Initializing && maxWait > 0)

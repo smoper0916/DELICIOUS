@@ -19,13 +19,11 @@ public class AnchorManager : MonoBehaviour
     {
         StartCoroutine(DelayMethod(3.5f, () =>
         {
-            float latitude = 36.1370f;
-            float longitude = 128.3962f;
+            float latitude = 36.137266f;
+            float longitude = 128.3965608f;
             // Conversion factors
             float degreesLatitudeInMeters = 111132;
             degreesLongitudeInMetersAtEquator = 111319.9f;
-
-
 
             // Real GPS Position - This will be the world origin.
             var gpsLat = GPSManager_NoCompass.Instance.latitude;

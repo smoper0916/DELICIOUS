@@ -13,15 +13,25 @@ public class PostBehaviour : MonoBehaviour
     private CertificateHandler cert;
     void Start()
     {
-        btn = GameObject.Find("ConnectBtn").GetComponent<Button>();
-        res = GameObject.Find("ConnectTxt").GetComponent<Text>();
-        btn.onClick.AddListener(OnClick);
+        //btn = GameObject.Find("ConnectBtn").GetComponent<Button>();
+        //res = GameObject.Find("ConnectTxt").GetComponent<Text>();
+        //btn.onClick.AddListener(OnClick);
+
+        var pairs = new Dictionary<string, string>();
+        var serverManager = new ServerManager();
+        pairs["url"] = "smoper1234@dfjfdk.com/profile";
+        pairs["method"] = "POST";
+        pairs["password"] = "rkskkgkd1564";
+        pairs["age"] = "12";
+        pairs["sex"] = "f";
+        pairs["name"] = "박갑수dkdk";
+        StartCoroutine(serverManager.SendRequest(pairs));
     }
 
     void OnClick()
     {
         res.text = "헤헤헤";
-        StartCoroutine(SendMsg());
+        //StartCoroutine(SendMsg());
     }
 
     

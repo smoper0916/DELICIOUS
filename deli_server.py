@@ -118,12 +118,12 @@ def create_user(usr_email):
 
     ##### if it doesn't have token
     # 1. 이메일로 가입하는 경우
-    if request.args.get('token') is None:
+    if 'token' not in request.form:
         query = "INSERT INTO user (usr_email, usr_name, usr_sex, usr_age, usr_pw) VALUES (%s, %s, %s, %s, %s)"
-        usr_name = request.args.get('name')
-        usr_sex = request.args.get('sex')
-        usr_age = int(request.args.get('age'))
-        usr_pw = request.args.get('password')
+        usr_name = request.form['name']
+        usr_sex = request.form['sex']
+        usr_age = int(request.form['age'])
+        usr_pw = request.form['password']
 
         parameter = (usr_email, usr_name, usr_sex, usr_age, usr_pw)
         db_conn.execute(query, parameter)
@@ -135,12 +135,11 @@ def create_user(usr_email):
         ### usr_name, usr_sex, usr_age 보류
         # 일단은 다 넣었음, 보류한거 뺄수도 있음
         query = "INSERT INTO user (usr_email, usr_name, usr_sex, usr_token, usr_age, usr_pw) VALUES (%s, %s, %s, %s, %s, %s)"
-        #usr_email = request.form(['usr_email'])
-        usr_name = request.args.get('usr_name')
-        usr_sex = request.args.get('usr_sex')
-        usr_token = request.args.get('usr_token')
-        usr_age = int(request.args.get('usr_age'))
-        usr_pw = request.args.get('usr_pw')
+        usr_name = request.form['name']
+        usr_sex = request.form['sex']
+        usr_token = request.form['token']
+        usr_age = int(request.form['age'])
+        usr_pw = request.form['password']
 
         parameter = (usr_email, usr_name, usr_sex, usr_token, usr_age, usr_pw)
         db_conn.execute(query, parameter)
@@ -152,20 +151,9 @@ def create_user(usr_email):
 
 @app.route(get_fullpath('/<usr_email>/profile'), methods=['PUT'])
 def update_user(usr_email):
-    ####### 사용할 필요가 없어서 삭제함
-    ####### 중복 확인해서 미리 거르는 코드
-    """
-    input_email = usr_email
-    duplicate_check_query = "SELECT * FROM user WHERE usr_email = %s"
-
-    if len(DB.executeAll(duplicate_check_query, input_email)) < 1:
-        abort(400, "This E-mail doesn't exist now. Please check your E-mail again")
-    """
-    ####### 사용할 필요가 없어서 삭제함
-    ####### 중복 확인해서 미리 거르는 코드
-
+    param_json = json.loads(request.get_data().decode('ascii'))
     query = "UPDATE user SET usr_pw = %s WHERE usr_email = %s"
-    usr_pw = request.args.get('new_password')
+    usr_pw = param_json['new_password']
 
     parameter = (usr_pw, usr_email)
     db_conn.execute_one(query, parameter)

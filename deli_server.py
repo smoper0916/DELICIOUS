@@ -176,8 +176,6 @@ def update_user(usr_email):
 
 @app.route(get_fullpath('/<usr_email>'), methods=['DELETE'])
 def delete_user(usr_email):
-    ############################################################### 중복 예외 처리 안했습니다
-
     query = "DELETE FROM user WHERE usr_email = %s"
     db_conn.execute(query, usr_email)
     db_conn.commit() # 회원 탈퇴 commit

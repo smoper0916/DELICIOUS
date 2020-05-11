@@ -24,6 +24,4 @@ public class CoroutineManager
         }
         isDone = true;
     }
-
-
 }

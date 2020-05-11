@@ -6,7 +6,7 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 using System.Runtime.Serialization.Formatters.Binary;
 
-public class ServerManager
+public class ServerManager : MonoBehaviour
 {
     public string res;
     private CertificateHandler cert;

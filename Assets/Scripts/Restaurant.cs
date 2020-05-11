@@ -1,18 +1,28 @@
 ﻿public class Restaurant
 {
-    public static Restaurant instance { get; set; }
+    public  Restaurant restaurant { get; set; }
 
-    private string id;
-    private string name;
-    private float x;
-    private float y;
-    private int mood;
-    private string menu;
-    private string photo;
+    public string score;
+    public string id;
+    public string name;
+    public string x;
+    public string y;
+    public string mood;
+    public string menu;
+    public string brief;
+    public string photo;
 
-    Restaurant(string id, string name, float x, float y, int mood, string menu, string photo)
+    Restaurant(string score, string id, string name, string x, string y, string mood, string menu,string brief, string photo)
     {
-        instance = this;
+        this.score = score;
+        this.id = id;
+        this.name = name;
+        this.x = x;
+        this.y = y;
+        this.mood = mood;
+        this.menu = menu;
+        this.brief = brief;
+        this.photo = photo;
     }
 
 }

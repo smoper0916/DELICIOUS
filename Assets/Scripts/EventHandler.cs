@@ -46,14 +46,14 @@ public class EventHandler : MonoBehaviour
                         List<Restaurant> restaurants = new List<Restaurant>();
                         foreach (JsonData i in jsonResult["restaurants"])
                         {
-                            restaurants.Add(new Restaurant(i["id"], i["name"], i["lat"], i["lon"], (dict.Contains("rating")) ? i["rating"] : null,
-                                i["category"], (dict.Contains("mood")) ? i["mood"] : null, (dict.Contains("brief")) ? i["brief"] : null));
+                            restaurants.Add(new Restaurant(i));
                         }
+                        result = restaurants;
                     }
                     else if(dict.Contains("code"))
                     {
                         // 실패된 경우
-
+                        result = jsonResult;
                     }
                     break;
                 case HandlingType.DetailedRestaurant:
@@ -65,7 +65,8 @@ public class EventHandler : MonoBehaviour
                             menu.Add((i["name"].ToString(), i["price"].ToString()));
                             // 썸네일까지 불러오게 해야함.
                         }
-                        jsonResult["info"]["desc"]
+                        //jsonResult["info"]["desc"]
+                        result = menu;
                     }
                     else if (dict.Contains("code"))
                     {

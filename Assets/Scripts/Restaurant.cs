@@ -1,28 +1,29 @@
-﻿public class Restaurant
+﻿using LitJson;
+using System.Collections;
+using System.Collections.Generic;
+
+public class Restaurant
 {
-    public  Restaurant restaurant { get; set; }
+    public string id { get; private set; }
+    public string name { get; private set; }
+    public float x { get; private set; }
+    public float y { get; private set; }
+    public float rating { get; private set; }
+    public string mood { get; private set; }
+    public string brief { get; private set; }
+    public string category { get; private set; }
 
-    public string score;
-    public string id;
-    public string name;
-    public string x;
-    public string y;
-    public string mood;
-    public string menu;
-    public string brief;
-    public string photo;
-
-    Restaurant(string score, string id, string name, string x, string y, string mood, string menu,string brief, string photo)
+    public Restaurant(JsonData i)
     {
-        this.score = score;
-        this.id = id;
-        this.name = name;
-        this.x = x;
-        this.y = y;
-        this.mood = mood;
-        this.menu = menu;
-        this.brief = brief;
-        this.photo = photo;
+        IDictionary dict = i;
+        this.id = i["id"].ToString();
+        this.name = i["name"].ToString();
+        this.x = float.Parse(i["lon"].ToString());
+        this.y = float.Parse(i["lat"].ToString());
+        this.category = i["category"].ToString();
+        this.rating = float.Parse(dict.Contains("rating") ? i["rating"].ToString() : null);
+        this.mood = dict.Contains("mood") ? i["mood"].ToString() : null;
+        this.brief = dict.Contains("brief") ? i["brief"].ToString() : null;
     }
 
 }

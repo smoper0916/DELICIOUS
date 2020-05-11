@@ -15,7 +15,6 @@ public class ServerManager
     {
         WWWForm formData = new WWWForm();
         UnityWebRequest www;
-        cert = new ForceAcceptAll();
 
         string method = msg["method"];
         string requestUrl = msg["url"];
@@ -23,7 +22,7 @@ public class ServerManager
         msg.Remove("method");
         msg.Remove("url");
 
-        string url = "https://api3.jaehyeok.kr:80/deli/v1/" + requestUrl;
+        string url = "https://api2.jaehyeok.kr:80/deli/v1/" + requestUrl;
 
         if (method.Equals("GET"))
         {
@@ -35,25 +34,7 @@ public class ServerManager
                 url = url + k + "=" + v + "&";
             }
             url = url.Substring(0, url.Length - 1);
-
             www = UnityWebRequest.Get(url);
-            www.certificateHandler = cert;
-
-            yield return www.SendWebRequest();
-
-            if (www.isNetworkError || www.isHttpError)
-            {
-
-                Debug.Log(www.error);
-            }
-
-            else
-            {
-                res = www.downloadHandler.text;
-                JsonData obj = JsonMapper.ToObject(res);
-
-                yield return obj;
-            }
         }
         else if (method.Equals("POST"))
         {
@@ -63,23 +44,6 @@ public class ServerManager
             }
 
             www = UnityWebRequest.Post(url, formData);
-            www.certificateHandler = cert;
-
-            yield return www.SendWebRequest();
-
-            if (www.isNetworkError || www.isHttpError)
-            {
-
-                Debug.Log(www.error);
-            }
-
-            else
-            {
-                res = www.downloadHandler.text;
-                JsonData obj = JsonMapper.ToObject(res);
-                Debug.Log(res);
-                yield return obj;
-            }
         }
         else if (method.Equals("PUT"))
         {
@@ -94,48 +58,48 @@ public class ServerManager
                 }
             }
             strData += "}";
-
             
             www = UnityWebRequest.Put(url, strData);
-            www.certificateHandler = cert;
-
-            yield return www.SendWebRequest();
-
-            if (www.isNetworkError || www.isHttpError)
-            {
-
-                Debug.Log(www.error);
-            }
-
-            else
-            {
-                res = www.downloadHandler.text;
-                Debug.Log(res);
-                JsonData obj = JsonMapper.ToObject(res);
-
-                yield return obj;
-            }
         }
         else if (method.Equals("DELETE"))
         {
-            cert = new ForceAcceptAll();
             www = UnityWebRequest.Delete(url);
-            www.certificateHandler = cert;
+        }
+        else
+        {
+            www = null;
+            yield break;
+        }
 
-            yield return www.SendWebRequest();
+        cert = new ForceAcceptAll();
+        www.certificateHandler = cert;
+        yield return www.SendWebRequest();
 
-            if (www.isNetworkError || www.isHttpError)
+        if (method.Equals("DELETE"))
+        {
+            var response = "";
+            if (www.responseCode == 200)
+                response = "{\"code\":\"success\"}";
+            else if (www.responseCode == 400)
+                response = "{\"code\":\"notMatch\"}";
+            else
+                response = "{\"code\":\"unexpected\"}";
+
+            JsonData obj = JsonMapper.ToObject(response);
+            yield return obj;
+        }
+        else
+        {
+            if (www.downloadHandler != null)
             {
-
-                Debug.Log(www.error);
+                res = www.downloadHandler.text;
+                JsonData obj = JsonMapper.ToObject(res);
+                yield return obj;
             }
-
             else
             {
-                Debug.Log(www.responseCode);
-                JsonData obj = JsonMapper.ToObject("{\"code\":\"success\"}");
-                Debug.Log(obj.ToString());
-                yield return obj;
+                if (www.isNetworkError || www.isHttpError)
+                    yield return www.error;
             }
         }
     }

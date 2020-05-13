@@ -4075,8 +4075,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82aee8ef956e3a04e8c765f81ec281f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  eventHandler: {fileID: 0}
-  serverManager: {fileID: 0}
+  eventHandler: {fileID: 663095627}
+  serverManager: {fileID: 1441551439}
   anchoredPrefab: {fileID: 2662701680546485251, guid: c7c8cf28468258c429878cffa121525a,
     type: 3}
 --- !u!114 &1478990643

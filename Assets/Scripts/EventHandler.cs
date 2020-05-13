@@ -30,7 +30,7 @@ public class EventHandler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        while(events.Count > 0 && isDone)
+        while (events.Count > 0 && isDone)
         {
             var item = events.Dequeue();
 
@@ -81,6 +81,7 @@ public class EventHandler : MonoBehaviour
                     break;
             }
             item.owner.Invoke("WakeUp", 0);
+            Debug.Log("Invoked");
             // 만약 이벤트가 2개 이상 쌓여있으면 100% 터짐.
         }
     }
@@ -88,7 +89,7 @@ public class EventHandler : MonoBehaviour
     public void onClick(MonoBehaviour owner, IEnumerator target, HandlingType type)
     {
         this.target = target;
-        this.coroutine = StartCoroutine(Run());
+        this.coroutine = owner.StartCoroutine(Run());
         events.Enqueue((owner, target, type));
     }
 
@@ -100,5 +101,6 @@ public class EventHandler : MonoBehaviour
             yield return result;
         }
         isDone = true;
+        Debug.Log("Finished Request");
     }
 }

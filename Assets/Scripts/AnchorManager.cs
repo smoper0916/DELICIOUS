@@ -2,11 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using GoogleARCore;
+using LitJson;
 using UnityEngine;
 
 public class AnchorManager : MonoBehaviour
 {
-    public GameObject eventHandler;
+    public EventHandler eventHandler;
     public ServerManager serverManager;
     List<Restaurant> restaurants = new List<Restaurant>();
     List<Vector3> vectors = new List<Vector3>();
@@ -22,49 +23,18 @@ public class AnchorManager : MonoBehaviour
     Quaternion lastAnchoredRotation;
 
     float degreesLongitudeInMetersAtEquator;
+    private bool flagWakeUp = false;
 
-    bool flagWakeUp = false;
+    CoroutineManager coroutineManager = null;
 
     private void Start()
     {
-        // Conversion factors
-        float degreesLatitudeInMeters = 111132;
-        degreesLongitudeInMetersAtEquator = 111319.9f;
-
-        // Real GPS Position - This will be the world origin.
-
-        var gpsLat = 35.870619f; //GPSManager_NoCompass.Instance.latitude;
-        var gpsLon = 128.5958397f; //GPSManager_NoCompass.Instance.longitude;
-        dic.Add("url", "restaurants/near");
-        dic.Add("lat", gpsLat.ToString());
-        dic.Add("lon", gpsLon.ToString());
-        dic.Add("radius", "200");
-        //GameObject tmp = GameObject.Find("EventHandler");
-        EventHandler EV = GameObject.Find("EventHandler").GetComponent<EventHandler>();
-        serverManager = GameObject.Find("ServerManager").GetComponent<ServerManager>();
-
-        EV.onClick(this, serverManager.SendRequest(dic), 0);
-
-        while (!flagWakeUp)
-        {
-
-        }
-        restaurants = EV.result as List<Restaurant>;
-        // GPS position converted into unity coordinates
-        foreach (Restaurant restaurant in restaurants)
-        {
-            var latOffset = (restaurant.y - gpsLat) * degreesLatitudeInMeters;
-            var lonOffset = (restaurant.x - gpsLon) * GetLongitudeDegreeDistance(restaurant.y);
-
-            Vector3 vector3 = new Vector3(latOffset, 0, latOffset);
-
-            vectors.Add(vector3);
-        }
-
+        StartCoroutine(loadRestaurants());
     }
 
     void Update()
-    {       // Real world position of object. Need to update with something near your own location.
+    {
+        // Real world position of object. Need to update with something near your own location.
         if (Input.touchCount > 0 && Input.touches[0].phase == TouchPhase.Began)
         {
             for (int i = 0; i < vectors.Count; i++)
@@ -83,17 +53,13 @@ public class AnchorManager : MonoBehaviour
                 textMeshs[0].text = restaurants[i].rating.ToString();
                 textMeshs[1].text = restaurants[i].name;
                 textMeshs[2].text = restaurants[i].brief;
-
+                Debug.Log("Added : " + restaurants[i].name);
             }
 
             foreach (Anchor anchor in anchors)
             {
                 gameObjects.Add(gameObject);
             }
-
-
-
-
         }
         if (Input.touchCount > 1 && gameObjects.Count != 0)
         {
@@ -124,6 +90,43 @@ public class AnchorManager : MonoBehaviour
             return;
         }
     }
+    private IEnumerator loadRestaurants()
+    {
+        // Conversion factors
+        float degreesLatitudeInMeters = 111132;
+        degreesLongitudeInMetersAtEquator = 111319.9f;
+
+        // Real GPS Position - This will be the world origin.
+        var gpsLat = 35.870619f; //GPSManager_NoCompass.Instance.latitude;
+        var gpsLon = 128.5958397f; //GPSManager_NoCompass.Instance.longitude;
+
+        dic.Add("url", "restaurants/near");
+        dic.Add("method", "GET");
+        dic.Add("lat", gpsLat.ToString());
+        dic.Add("lon", gpsLon.ToString());
+        dic.Add("radius", "200");
+
+        //IEnumerator sender = serverManager.SendRequest(dic);
+        eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Restaurants);
+
+        while (!flagWakeUp)
+            yield return new WaitForSeconds(1.0f);
+        
+
+        restaurants = eventHandler.result as List<Restaurant>;
+
+        // GPS position converted into unity coordinates
+        foreach (Restaurant restaurant in restaurants)
+        {
+            var latOffset = (restaurant.y - gpsLat) * degreesLatitudeInMeters;
+            var lonOffset = (restaurant.x - gpsLon) * GetLongitudeDegreeDistance(restaurant.y);
+
+            Vector3 vector3 = new Vector3(latOffset, 0, latOffset);
+
+            vectors.Add(vector3);
+        }
+        //yield return new WaitUntil(() => flagWakeUp == true);
+    }
     private float GetLongitudeDegreeDistance(float latitude)
     {
         return degreesLongitudeInMetersAtEquator * Mathf.Cos(latitude * (Mathf.PI / 180));
@@ -135,6 +138,7 @@ public class AnchorManager : MonoBehaviour
     }
     public void WakeUp()
     {
+        Debug.Log("Wake Up!");
         flagWakeUp = true;
     }
 }

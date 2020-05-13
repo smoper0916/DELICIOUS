@@ -21,7 +21,7 @@ public class Restaurant
         this.x = float.Parse(i["lon"].ToString());
         this.y = float.Parse(i["lat"].ToString());
         this.category = i["category"].ToString();
-        this.rating = float.Parse(dict.Contains("rating") ? i["rating"].ToString() : null);
+        this.rating = float.Parse(dict.Contains("rating") ? i["rating"].ToString() : "-1");
         this.mood = dict.Contains("mood") ? i["mood"].ToString() : null;
         this.brief = dict.Contains("brief") ? i["brief"].ToString() : null;
     }

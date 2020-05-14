@@ -10,7 +10,7 @@ public class EventHandler : MonoBehaviour
     public object result = null;
     public bool isDone = false;
 
-    public enum HandlingType { Restaurants, DetailedRestaurant, MyInfo }
+    public enum HandlingType { Restaurants, DetailedRestaurant, MyInfo, Auth }
     private IEnumerator target;
     private Queue<(MonoBehaviour owner, IEnumerator target, HandlingType type)> events = new Queue<(MonoBehaviour, IEnumerator, HandlingType)>();
     
@@ -75,6 +75,13 @@ public class EventHandler : MonoBehaviour
                     }
                     break;
                 case HandlingType.MyInfo:
+                    break;
+                case HandlingType.Auth:
+                    if (dict.Contains("code"))
+                    {
+                        result = jsonResult;
+                        
+                    }
                     break;
                 default:
 

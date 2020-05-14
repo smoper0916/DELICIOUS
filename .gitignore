@@ -63,3 +63,6 @@ crashlytics-build.properties
 /Assets/PlayServicesResolver
 /Assets/Plugins
 /Assets/LJR.meta
+/Packages
+/packages.config
+/app.config

@@ -96,6 +96,7 @@ public class Login : MonoBehaviour
         }
         else
         {
+            Debug.Log("test");
             LoginFailed.SetActive(true);
         }
 

@@ -57,6 +57,8 @@ public class Login : MonoBehaviour
 
     public void Update()
     {
+        //eventHandler = new EventHandler();
+
         //뒤로 가기 누르면 어플이 종료됨
         if (Application.platform == RuntimePlatform.Android)
         {
@@ -67,8 +69,12 @@ public class Login : MonoBehaviour
         }
 
     }
+    IEnumerator enumerator;
+
     private IEnumerator handleLogin(Dictionary<string, string> pairs)
     {
+        Debug.Log("로그인 핸들 진입");
+
         eventHandler.onClick(this, serverManager.SendRequest(pairs), EventHandler.HandlingType.Restaurants);
         while (!flagWakeUp)
             yield return new WaitForSeconds(1.0f);
@@ -94,16 +100,24 @@ public class Login : MonoBehaviour
                 //메인화면 씬으로 전환
             }
         }
-        else
+        else if(check["code"].ToString() == "unexpected")
         {
-            Debug.Log("test");
+            Debug.Log("500 Error");
             LoginFailed.SetActive(true);
         }
+        else
+        {
+            Debug.Log("비밀번호 오류");
+            LoginFailed.SetActive(true);
 
+        }
+        this.StopCoroutine(enumerator);
     }
 
     public void clickLogin()
     {
+        //flagWakeUp = false;
+        //eventHandler = new EventHandler();
         //Debug.Log(IDfield.text + PWfield.text);
 
 
@@ -126,7 +140,7 @@ public class Login : MonoBehaviour
         pairs["id"] = IDfield.text;
         pairs["password"] = PWfield.text;
 
-        IEnumerator enumerator = handleLogin(pairs);
+        enumerator = handleLogin(pairs);
 
         this.StartCoroutine(enumerator);
     }

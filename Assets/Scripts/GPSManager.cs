@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GPSManager_NoCompass : MonoBehaviour
+public class GPSManager : MonoBehaviour
 {
-    public static GPSManager_NoCompass Instance { set; get; }
+    public static GPSManager Instance { set; get; }
     public float latitude;
     public float longitude;
+
+    public float heading;
 
     [HideInInspector]
     public bool isRunning = true;
@@ -24,6 +26,10 @@ public class GPSManager_NoCompass : MonoBehaviour
     private IEnumerator StartLocationService()
     {
         ServiceStatus = LocationServiceStatus.Initializing;
+
+        Input.compass.enabled = true;
+
+        yield return new WaitForSeconds(1);
 
         if (!Input.location.isEnabledByUser)
         {
@@ -71,9 +77,11 @@ public class GPSManager_NoCompass : MonoBehaviour
         {
             latitude = Input.location.lastData.latitude;
             longitude = Input.location.lastData.longitude;
+
+            heading = Input.compass.trueHeading;
             ServiceStatus = Input.location.status;
 
-            Debug.Log(string.Format("Lat: {0} Long: {1}", latitude, longitude));
+            Debug.Log(string.Format("Lat: {0} Long: {1} Heading: {2}", latitude, longitude, heading));
         }
         else
         {

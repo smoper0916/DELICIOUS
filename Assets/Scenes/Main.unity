@@ -4077,7 +4077,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   eventHandler: {fileID: 663095627}
   serverManager: {fileID: 1441551439}
-  anchoredPrefab: {fileID: 2662701680546485251, guid: c7c8cf28468258c429878cffa121525a,
+  anchoredPrefab: {fileID: 3395460497252656247, guid: 2ffb3d307f1f23240a5e093a67d56ead,
     type: 3}
 --- !u!114 &1478990643
 MonoBehaviour:

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using GoogleARCore;
 using LitJson;
 using UnityEngine;
+using GPSLogger;
 
 public class AnchorManager : MonoBehaviour
 {
@@ -15,6 +16,7 @@ public class AnchorManager : MonoBehaviour
     List<Anchor> anchors = new List<Anchor>();
     List<GameObject> gameObjects = new List<GameObject>();
     Dictionary<string, string> dic = new Dictionary<string, string>();
+    GpsCalc gc = new GpsCalc();
     public GameObject anchoredPrefab;
 
     TextMesh[] textMeshs;
@@ -46,14 +48,14 @@ public class AnchorManager : MonoBehaviour
                 anchors.Add(Session.CreateAnchor(pose));
 
                 var gameObject = Instantiate(anchoredPrefab, anchors[i].transform.position, anchoredPrefab.transform.rotation, anchors[i].transform);
-
+                gameObject.transform.rotation = Looking(gameObject.transform.position, transform.position);
                 textMeshs = gameObject.GetComponentsInChildren<TextMesh>();
-
 
                 textMeshs[0].text = restaurants[i].rating.ToString();
                 textMeshs[1].text = restaurants[i].name;
                 textMeshs[2].text = restaurants[i].brief;
-                Debug.Log("Added : " + restaurants[i].name);
+
+                // Debug.Log("Added : " + restaurants[i].name);
             }
 
             foreach (Anchor anchor in anchors)
@@ -97,8 +99,8 @@ public class AnchorManager : MonoBehaviour
         degreesLongitudeInMetersAtEquator = 111319.9f;
 
         // Real GPS Position - This will be the world origin.
-        var gpsLat = 35.870619f; //GPSManager_NoCompass.Instance.latitude;
-        var gpsLon = 128.5958397f; //GPSManager_NoCompass.Instance.longitude;
+        var gpsLat = 36.1377368f; //GPSManager.Instance.latitude;
+        var gpsLon = 128.4195133f; //GPSManager.Instance.longitude;
 
         dic.Add("url", "restaurants/near");
         dic.Add("method", "GET");
@@ -111,7 +113,7 @@ public class AnchorManager : MonoBehaviour
 
         while (!flagWakeUp)
             yield return new WaitForSeconds(1.0f);
-        
+
 
         restaurants = eventHandler.result as List<Restaurant>;
 
@@ -121,8 +123,15 @@ public class AnchorManager : MonoBehaviour
             var latOffset = (restaurant.y - gpsLat) * degreesLatitudeInMeters;
             var lonOffset = (restaurant.x - gpsLon) * GetLongitudeDegreeDistance(restaurant.y);
 
-            Vector3 vector3 = new Vector3(latOffset, 0, latOffset);
+            Vector3 vector3 = new Vector3(latOffset, 0, lonOffset);
 
+            Debug.Log(vector3);
+
+            vector3.Normalize();
+
+            vector3 = Quaternion.AngleAxis(GPSManager.Instance.heading, Vector3.up) * vector3;
+
+            Debug.Log(vector3);
             vectors.Add(vector3);
         }
         //yield return new WaitUntil(() => flagWakeUp == true);
@@ -140,5 +149,14 @@ public class AnchorManager : MonoBehaviour
     {
         Debug.Log("Wake Up!");
         flagWakeUp = true;
+    }
+    Quaternion Looking(Vector3 tartget, Vector3 current)
+    {
+        Quaternion lookAt = Quaternion.identity;
+        Vector3 lookAtVec = (tartget - current).normalized;
+
+        lookAt.SetLookRotation(lookAtVec);
+
+        return lookAt;
     }
 }

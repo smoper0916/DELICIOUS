@@ -24,6 +24,7 @@ public class RegisterUser : MonoBehaviour
     private ServerManager serverManager = new ServerManager();
     public EventHandler eventHandler;
     private bool flagWakeUp = false;
+    public Button registerBT;
 
     public GameObject RegisterPanel = null;
     public GameObject SuccessPanel = null;
@@ -39,7 +40,7 @@ public class RegisterUser : MonoBehaviour
         EmptyNotiPanel = GameObject.Find("EmptyFieldNoti");
         SuccessPanel.SetActive(false);
         EmptyNotiPanel.SetActive(false);
-
+        registerBT.interactable = false;
     }
 
 
@@ -58,6 +59,7 @@ public class RegisterUser : MonoBehaviour
 
     private IEnumerator handleRegister(Dictionary<string, string> pairs)
     {
+        flagWakeUp = false;
         eventHandler.onClick(this, serverManager.SendRequest(pairs), EventHandler.HandlingType.Restaurants);
 
         while (!flagWakeUp)
@@ -78,6 +80,7 @@ public class RegisterUser : MonoBehaviour
     //뭔지 모를 에러가뜸
     private IEnumerator handleCheckId(Dictionary<string, string> pairs)
     {
+        flagWakeUp = false;
         Debug.Log("중복확인 클릭");
         eventHandler.onClick(this, serverManager.SendRequest(pairs), EventHandler.HandlingType.Default);
         Debug.Log("이벤트 핸들러 실행");
@@ -93,6 +96,7 @@ public class RegisterUser : MonoBehaviour
             warningField.text = "사용할 수 있는 ID입니다.";
 
             //성공했을때만 버튼을 활성화시켜야함
+            registerBT.interactable = true;
         }
         else if(check["code"].ToString() == "duplicated")
         {

@@ -69,10 +69,11 @@ public class Login : MonoBehaviour
         }
 
     }
-    IEnumerator enumerator;
+    
 
     private IEnumerator handleLogin(Dictionary<string, string> pairs)
     {
+        flagWakeUp = false;
         Debug.Log("로그인 핸들 진입");
 
         eventHandler.onClick(this, serverManager.SendRequest(pairs), EventHandler.HandlingType.Restaurants);
@@ -111,7 +112,7 @@ public class Login : MonoBehaviour
             LoginFailed.SetActive(true);
 
         }
-        this.StopCoroutine(enumerator);
+        //this.StopCoroutine(enumerator);
     }
 
     public void clickLogin()
@@ -140,7 +141,7 @@ public class Login : MonoBehaviour
         pairs["id"] = IDfield.text;
         pairs["password"] = PWfield.text;
 
-        enumerator = handleLogin(pairs);
+        IEnumerator enumerator = handleLogin(pairs);
 
         this.StartCoroutine(enumerator);
     }

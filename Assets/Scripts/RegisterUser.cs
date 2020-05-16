@@ -79,7 +79,7 @@ public class RegisterUser : MonoBehaviour
     private IEnumerator handleCheckId(Dictionary<string, string> pairs)
     {
         Debug.Log("중복확인 클릭");
-        eventHandler.onClick(this, serverManager.SendRequest(pairs), EventHandler.HandlingType.Restaurants);
+        eventHandler.onClick(this, serverManager.SendRequest(pairs), EventHandler.HandlingType.Default);
         Debug.Log("이벤트 핸들러 실행");
         while (!flagWakeUp)
             yield return new WaitForSeconds(1.0f);

@@ -13,13 +13,6 @@ public class EventHandler : MonoBehaviour
     public enum HandlingType { Restaurants, DetailedRestaurant, MyInfo, Default }
     private IEnumerator target;
     private Queue<(MonoBehaviour owner, IEnumerator target, HandlingType type)> events = new Queue<(MonoBehaviour, IEnumerator, HandlingType)>();
-    
-    GameObject MemberManager;
-    GameObject SpawnManger;
-    GameObject DetailedRestaurantManager;
-    GameObject LoginManager;
-    GameObject LikedManager;
-    GameObject Navigation;
 
     // Start is called before the first frame update
     void Start()
@@ -34,12 +27,9 @@ public class EventHandler : MonoBehaviour
         {
             var item = events.Dequeue();
 
-            // 처리할 것들을 처리하자
-            if ((result is JsonData))
+            if (result is JsonData)
             {
-
-
-                JsonData jsonResult = (JsonData)(result);
+                JsonData jsonResult = result as JsonData;
                 IDictionary dict = jsonResult;
                 switch (item.type)
                 {
@@ -75,7 +65,7 @@ public class EventHandler : MonoBehaviour
                         else if (dict.Contains("code"))
                         {
                             // 실패된 경우
-
+                            result = jsonResult;
                         }
                         break;
                     case HandlingType.MyInfo:
@@ -84,7 +74,6 @@ public class EventHandler : MonoBehaviour
                         if (dict.Contains("code"))
                         {
                             result = jsonResult;
-
                         }
                         break;
                     default:

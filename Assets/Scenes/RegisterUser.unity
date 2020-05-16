@@ -2972,7 +2972,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0.0031738281}
-  m_SizeDelta: {x: 0, y: -0.0064697266}
+  m_SizeDelta: {x: 0, y: -0.006591797}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1453063597
 GameObject:
@@ -3010,7 +3010,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.0031738281}
+  m_AnchoredPosition: {x: 0, y: -0.0031738281}
   m_SizeDelta: {x: 0, y: -0.0064697266}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1453063599
@@ -3999,9 +3999,10 @@ MonoBehaviour:
   warningField: {fileID: 190928683}
   checkPW: {fileID: 77546736}
   eventHandler: {fileID: 146976052}
+  registerBT: {fileID: 675431359}
   RegisterPanel: {fileID: 1724747720}
   SuccessPanel: {fileID: 1449817031}
-  EmptyNotiPanel: {fileID: 0}
+  EmptyNotiPanel: {fileID: 1453063597}
 --- !u!1 &1990455860
 GameObject:
   m_ObjectHideFlags: 0
@@ -4123,7 +4124,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 18, y: -82.062}
+  m_AnchoredPosition: {x: 0, y: -82.062}
   m_SizeDelta: {x: 394.5357, y: 164.12462}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2056983198

@@ -55,6 +55,7 @@ public class AnchorManager : MonoBehaviour
                 textMeshs[1].text = restaurants[i].name;
                 textMeshs[2].text = restaurants[i].brief;
 
+                gameObject.transform.localScale = new Vector3(10, 7, 0);
                 // Debug.Log("Added : " + restaurants[i].name);
             }
 
@@ -112,7 +113,7 @@ public class AnchorManager : MonoBehaviour
         eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Restaurants);
 
         while (!flagWakeUp)
-            yield return new WaitForSeconds(1.0f);
+            yield return new WaitForSeconds(5.0f);
 
 
         restaurants = eventHandler.result as List<Restaurant>;
@@ -125,13 +126,12 @@ public class AnchorManager : MonoBehaviour
 
             Vector3 vector3 = new Vector3(latOffset, 0, lonOffset);
 
-            Debug.Log(vector3);
-
-            vector3.Normalize();
+            Debug.Log(GPSManager.Instance.heading);
 
             vector3 = Quaternion.AngleAxis(GPSManager.Instance.heading, Vector3.up) * vector3;
 
             Debug.Log(vector3);
+
             vectors.Add(vector3);
         }
         //yield return new WaitUntil(() => flagWakeUp == true);

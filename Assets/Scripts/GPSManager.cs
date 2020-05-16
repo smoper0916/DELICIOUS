@@ -9,6 +9,7 @@ public class GPSManager : MonoBehaviour
     public float longitude;
 
     public float heading;
+    public float headingAccuracy;
 
     [HideInInspector]
     public bool isRunning = true;
@@ -79,9 +80,10 @@ public class GPSManager : MonoBehaviour
             longitude = Input.location.lastData.longitude;
 
             heading = Input.compass.trueHeading;
+            headingAccuracy = Input.compass.headingAccuracy;
             ServiceStatus = Input.location.status;
 
-            Debug.Log(string.Format("Lat: {0} Long: {1} Heading: {2}", latitude, longitude, heading));
+            Debug.Log(string.Format("Lat: {0} Long: {1} Heading: {2} HeadingAccuracy : {3}", latitude, longitude, heading, headingAccuracy));
         }
         else
         {

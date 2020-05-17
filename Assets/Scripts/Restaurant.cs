@@ -13,7 +13,17 @@ public class Restaurant
     public string brief { get; private set; }
     public string category { get; private set; }
 
+    public Restaurant()
+    {
+        
+    }
+
     public Restaurant(JsonData i)
+    {
+        PutData(i);
+    }
+
+    public void PutData(JsonData i)
     {
         IDictionary dict = i;
         this.id = i["id"].ToString();
@@ -25,5 +35,4 @@ public class Restaurant
         this.mood = dict.Contains("mood") ? i["mood"].ToString() : null;
         this.brief = dict.Contains("brief") ? i["brief"].ToString() : null;
     }
-
 }

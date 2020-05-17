@@ -133,7 +133,7 @@ public class AnchorManager : MonoBehaviour
 
             Vector3 vector3 = new Vector3(latOffset, 0, lonOffset);
 
-            Debug.Log(GPSManager.Instance.heading);
+            //Debug.Log(GPSManager.Instance.heading);
 
             vector3 = Quaternion.AngleAxis(GPSManager.Instance.heading, Vector3.up) * vector3;
 

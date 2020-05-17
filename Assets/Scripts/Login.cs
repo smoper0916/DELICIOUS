@@ -32,16 +32,29 @@ public class Login : MonoBehaviour
 
     public void Start()
     {
+        Debug.Log(PlayerPrefs.GetString("ID"));
         //자동로그인이 체크되어있는경우
         if(auto.isOn)
         {   //로컬에서 id값이 존재하면
+            
             if(PlayerPrefs.HasKey("ID"))
             {
+        
                 //id,pw를 불러와서 로그인 실행
-                userId = PlayerPrefs.GetString("ID");
-                userPw = PlayerPrefs.GetString("PW");
+                IDfield.text = PlayerPrefs.GetString("ID");
+                PWfield.text = PlayerPrefs.GetString("PW");
                 //서버로 로그인 요청을 보내는 코드 작성
                 //response를 확인후 
+
+                var pairs = new Dictionary<string, string>();
+                pairs["url"] = "user/auth";
+                pairs["method"] = "POST";
+                pairs["id"] = IDfield.text;
+                pairs["password"] = PWfield.text;
+
+                IEnumerator enumerator = handleLogin(pairs);
+
+                this.StartCoroutine(enumerator);
             }
         }
 
@@ -91,12 +104,15 @@ public class Login : MonoBehaviour
 
             if (auto.isOn)
             {
+
+
                 //서버의 응답을 확인해서 success 이고 자동로그인 체크된경우 로컬에 id, pw저장
                 PlayerPrefs.SetString("ID", IDfield.text);
                 PlayerPrefs.SetString("PW", PWfield.text);
+
                 Debug.Log("실행완료");
                 SceneManager.LoadScene("Main");
-                //response에 따라 씬 결정
+             
             }
             //자동로그인 체크안된경우 그냥 메인화면으로 넘김
             else

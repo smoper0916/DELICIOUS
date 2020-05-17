@@ -49,8 +49,8 @@ public class Login : MonoBehaviour
         TouchScreenKeyboard.hideInput = false;
         //if (keyboard == null || !TouchScreenKeyboard.visible)
             //keyboard = TouchScreenKeyboard.Open("", TouchScreenKeyboardType.Default, false, false, false, false, "xyz");
-        LoginPanel = GameObject.Find("Login");
-        LoginFailed = GameObject.Find("failed");
+        //LoginPanel = GameObject.Find("Login");
+        //LoginFailed = GameObject.Find("failed");
 
         LoginFailed.SetActive(false);
     }
@@ -85,9 +85,13 @@ public class Login : MonoBehaviour
         //자동로그인이 체크되어있으면
         if (check["code"].ToString() == "success")
         {
+            //로그인 성공시 세션을 위해 스태틱변수에 유저 정보저장
+            userId = IDfield.text;
+            userPw = PWfield.text;
+
             if (auto.isOn)
             {
-                //서버의 응답을 확인해서 success일 경우 로컬에 id, pw저장
+                //서버의 응답을 확인해서 success 이고 자동로그인 체크된경우 로컬에 id, pw저장
                 PlayerPrefs.SetString("ID", IDfield.text);
                 PlayerPrefs.SetString("PW", PWfield.text);
                 Debug.Log("실행완료");

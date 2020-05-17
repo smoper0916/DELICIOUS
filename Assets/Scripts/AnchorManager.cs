@@ -24,10 +24,14 @@ public class AnchorManager : MonoBehaviour
     Vector3 lastAnchoredPosition;
     Quaternion lastAnchoredRotation;
 
+    public static GameObject target;
+
     float degreesLongitudeInMetersAtEquator;
     private bool flagWakeUp = false;
 
     CoroutineManager coroutineManager = null;
+
+    public GameObject canvas;
 
     private void Start()
     {
@@ -37,7 +41,7 @@ public class AnchorManager : MonoBehaviour
     void Update()
     {
         // Real world position of object. Need to update with something near your own location.
-        if (Input.touchCount > 0 && Input.touches[0].phase == TouchPhase.Began)
+        if (Input.touchCount == 1 && Input.touches[0].phase == TouchPhase.Began)
         {
             for (int i = 0; i < vectors.Count; i++)
             {
@@ -51,9 +55,10 @@ public class AnchorManager : MonoBehaviour
                 gameObject.transform.rotation = Looking(gameObject.transform.position, transform.position);
                 textMeshs = gameObject.GetComponentsInChildren<TextMesh>();
 
-                textMeshs[0].text = restaurants[i].rating.ToString();
-                textMeshs[1].text = restaurants[i].name;
-                textMeshs[2].text = restaurants[i].brief;
+                textMeshs[0].text = restaurants[i].id;
+                textMeshs[1].text = restaurants[i].rating.ToString();
+                textMeshs[2].text = restaurants[i].name;
+                textMeshs[3].text = restaurants[i].brief;
 
                 gameObject.transform.localScale = new Vector3(10, 7, 0);
                 // Debug.Log("Added : " + restaurants[i].name);
@@ -77,12 +82,14 @@ public class AnchorManager : MonoBehaviour
 
             {
 
-                if (Input.GetTouch(0).phase == TouchPhase.Began)    // 딱 처음 터치 할때 발생한다
+                if (Input.GetTouch(Input.touchCount).phase == TouchPhase.Began)    // 딱 처음 터치 할때 발생한다
 
                 {
+                    target = hit.collider.gameObject;
 
+                    GameObject.Find("DetailedRestaurantManager").SetActive(true);
 
-
+                    canvas.SetActive(false);
                 }
 
             }

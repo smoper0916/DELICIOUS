@@ -2,7 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using GoogleARCore;
+using LitJson;
 using UnityEngine;
+using GPSLogger;
 
 public class AnchorManager : MonoBehaviour
 {
@@ -14,6 +16,7 @@ public class AnchorManager : MonoBehaviour
     List<Anchor> anchors = new List<Anchor>();
     List<GameObject> gameObjects = new List<GameObject>();
     Dictionary<string, string> dic = new Dictionary<string, string>();
+    GpsCalc gc = new GpsCalc();
     public GameObject anchoredPrefab;
 
     TextMesh[] textMeshs;
@@ -25,7 +28,8 @@ public class AnchorManager : MonoBehaviour
 
     float degreesLongitudeInMetersAtEquator;
     private bool flagWakeUp = false;
-    private bool flagCreate = false;
+
+    CoroutineManager coroutineManager = null;
 
     public GameObject canvas;
 
@@ -36,42 +40,38 @@ public class AnchorManager : MonoBehaviour
 
     void Update()
     {
-        if (flagCreate == false)
+        // Real world position of object. Need to update with something near your own location.
+        if (Input.touchCount == 1 && Input.touches[0].phase == TouchPhase.Began)
         {
-            // Real world position of object. Need to update with something near your own location.
-            if (Input.touchCount > 0 && Input.touches[0].phase == TouchPhase.Began)
+            for (int i = 0; i < vectors.Count; i++)
             {
-                for (int i = 0; i < vectors.Count; i++)
-                {
-                    Pose pose = new Pose(vectors[i], transform.rotation);
+                Pose pose = new Pose(vectors[i], transform.rotation);
 
-                    poses.Add(pose);
+                poses.Add(pose);
 
-                    anchors.Add(Session.CreateAnchor(pose));
+                anchors.Add(Session.CreateAnchor(pose));
 
-                    var gameObject = Instantiate(anchoredPrefab, anchors[i].transform.position, anchoredPrefab.transform.rotation, anchors[i].transform);
-                    gameObject.transform.rotation = Looking(gameObject.transform.position, transform.position);
-                    textMeshs = gameObject.GetComponentsInChildren<TextMesh>();
+                var gameObject = Instantiate(anchoredPrefab, anchors[i].transform.position, anchoredPrefab.transform.rotation, anchors[i].transform);
+                gameObject.transform.rotation = Looking(gameObject.transform.position, transform.position);
+                textMeshs = gameObject.GetComponentsInChildren<TextMesh>();
 
-                    textMeshs[0].text = restaurants[i].id;
-                    textMeshs[1].text = restaurants[i].rating.ToString();
-                    textMeshs[2].text = restaurants[i].name;
-                    textMeshs[3].text = restaurants[i].brief;
+                textMeshs[0].text = restaurants[i].id;
+                textMeshs[1].text = restaurants[i].rating.ToString();
+                textMeshs[2].text = restaurants[i].name;
+                textMeshs[3].text = restaurants[i].brief;
 
-                    gameObject.transform.localScale = new Vector3(10, 7, 0);
-                    // Debug.Log("Added : " + restaurants[i].name);
-                }
+                gameObject.transform.localScale = new Vector3(10, 7, 0);
+                // Debug.Log("Added : " + restaurants[i].name);
+            }
 
-                foreach (Anchor anchor in anchors)
-                {
-                    gameObjects.Add(gameObject);
-                }
-                flagCreate = true;
+            foreach (Anchor anchor in anchors)
+            {
+                gameObjects.Add(gameObject);
             }
         }
-        if (Input.touchCount > 0 && flagCreate == true)
+        if (Input.touchCount > 1 && gameObjects.Count != 0)
         {
-            Vector2 pos = Input.GetTouch(0).position;
+            Vector2 pos = Input.GetTouch(Input.touchCount).position;
             Vector3 theTouch = new Vector3(pos.x, pos.y, 0.0f);    // 변환 안하고 바로 Vector3로 받아도 되겠지.
 
             Ray ray = Camera.main.ScreenPointToRay(theTouch);    // 터치한 좌표 레이로 바꾸엉
@@ -79,15 +79,15 @@ public class AnchorManager : MonoBehaviour
             RaycastHit hit;    // 정보 저장할 구조체 만들고
 
             if (Physics.Raycast(ray, out hit, Mathf.Infinity))    // 레이저를 끝까지 쏴블자. 충돌 한넘이 있으면 return true다.
+
             {
-                if (Input.GetTouch(0).phase == TouchPhase.Began)    // 딱 처음 터치 할때 발생한다
+
+                if (Input.GetTouch(Input.touchCount).phase == TouchPhase.Began)    // 딱 처음 터치 할때 발생한다
 
                 {
                     target = hit.collider.gameObject;
-                    TextMesh[] meshes;
-                    meshes = target.GetComponentsInChildren<TextMesh>();
-                    Debug.Log(meshes[2].text);
-                    //GameObject.Find("DetailedRestaurantManager").SetActive(true);
+
+                    GameObject.Find("DetailedRestaurantManager").SetActive(true);
 
                     canvas.SetActive(false);
                 }
@@ -135,7 +135,7 @@ public class AnchorManager : MonoBehaviour
 
             //Debug.Log(GPSManager.Instance.heading);
 
-            vector3 = Quaternion.AngleAxis(-GPSManager.Instance.heading, Vector3.up) * vector3;
+            vector3 = Quaternion.AngleAxis(GPSManager.Instance.heading, Vector3.up) * vector3;
 
             Debug.Log(vector3);
 

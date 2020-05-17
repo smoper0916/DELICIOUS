@@ -21,10 +21,8 @@ public class UserManager : MonoBehaviour
     void Start()
     {
         var pairs = new Dictionary<string, string>();
-        //pairs["url"] = Login.userId + "/profile";
-        //pairs["password"] = Login.userPw;
-        pairs["url"] = "nsh722/profile";
-        pairs["password"] = "1234";
+        pairs["url"] = Login.userId + "/profile";
+        pairs["password"] = Login.userPw;
         pairs["method"] = "GET";
 
         Debug.Log(pairs["url"] + pairs["password"]);
@@ -54,7 +52,7 @@ public class UserManager : MonoBehaviour
 
         Debug.Log("핸들러 종료");
 
-        mailContent.text = "nsh722";
+        mailContent.text = Login.userId;
         nameContent.text = check["user"]["name"].ToString();
         ageContent.text = check["user"]["age"].ToString();
         if(check["user"]["sex"].ToString() == "f")

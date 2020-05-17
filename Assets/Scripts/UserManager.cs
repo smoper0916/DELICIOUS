@@ -15,7 +15,7 @@ public class UserManager : MonoBehaviour
 
     public Text mailContent;
     public Text nameContent;
-    public Text birthContent;
+    public Text ageContent;
     public Text sexContent;
     // Start is called before the first frame update
     void Start()
@@ -54,8 +54,23 @@ public class UserManager : MonoBehaviour
 
         Debug.Log("핸들러 종료");
 
+        mailContent.text = "nsh722";
+        nameContent.text = check["user"]["name"].ToString();
+        ageContent.text = check["user"]["age"].ToString();
+        if(check["user"]["sex"].ToString() == "f")
+        {
+            sexContent.text = "여성";
+        }
+        else
+        {
+            sexContent.text = "남성";
+        }
+        
+
+
+
     }
-    public void WakeUp()
+public void WakeUp()
     {
         flagWakeUp = true;
     }

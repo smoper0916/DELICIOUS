@@ -124,6 +124,7 @@ public class EventHandler : MonoBehaviour
 
     public void onClick(MonoBehaviour owner, IEnumerator target, HandlingType type)
     {
+        isDone = false;
         this.target = target;
         this.coroutine = owner.StartCoroutine(Run());
         events.Enqueue((owner, target, type));

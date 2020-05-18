@@ -79,7 +79,7 @@ public class GPSManager : MonoBehaviour
             latitude = Input.location.lastData.latitude;
             longitude = Input.location.lastData.longitude;
 
-            heading = Input.compass.trueHeading;
+            heading = Input.compass.magneticHeading;
             headingAccuracy = Input.compass.headingAccuracy;
             ServiceStatus = Input.location.status;
 

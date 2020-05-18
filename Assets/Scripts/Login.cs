@@ -22,6 +22,10 @@ public class Login : MonoBehaviour
 
     public static string userId;
     public static string userPw;
+    public static string name;
+    public static string age;
+    public static string sex;
+
 
     public GameObject LoginPanel = null;
     public GameObject LoginFailed = null;
@@ -32,7 +36,7 @@ public class Login : MonoBehaviour
 
     public void Start()
     {
-        Debug.Log(PlayerPrefs.GetString("ID"));
+        Debug.Log(PlayerPrefs.GetString("PW"));
         //자동로그인이 체크되어있는경우
         if(auto.isOn)
         {   //로컬에서 id값이 존재하면
@@ -41,22 +45,17 @@ public class Login : MonoBehaviour
             {
         
                 //id,pw를 불러와서 로그인 실행
-                IDfield.text = PlayerPrefs.GetString("ID");
-                PWfield.text = PlayerPrefs.GetString("PW");
+                userId = PlayerPrefs.GetString("ID");
+                userPw = PlayerPrefs.GetString("PW");
                 //서버로 로그인 요청을 보내는 코드 작성
                 //response를 확인후 
 
-                var pairs = new Dictionary<string, string>();
-                pairs["url"] = "user/auth";
-                pairs["method"] = "POST";
-                pairs["id"] = IDfield.text;
-                pairs["password"] = PWfield.text;
+                getUserInfo();
 
-                IEnumerator enumerator = handleLogin(pairs);
-
-                this.StartCoroutine(enumerator);
             }
         }
+
+
 
 
         TouchScreenKeyboard.hideInput = false;
@@ -66,6 +65,47 @@ public class Login : MonoBehaviour
         //LoginFailed = GameObject.Find("failed");
 
         LoginFailed.SetActive(false);
+    }
+
+    public void getUserInfo()
+    {
+        var pairs = new Dictionary<string, string>();
+        pairs["url"] = userId + "/profile";
+        pairs["password"] = userPw;
+        //pairs["url"] = "nsh722/profile"; //실제 id넣어야함
+        pairs["method"] = "GET";
+
+        Debug.Log(pairs["url"] + pairs["password"]);
+
+        IEnumerator enumerator = handleUserInfo(pairs);
+
+        StartCoroutine(enumerator);
+    }
+
+
+    private IEnumerator handleUserInfo(Dictionary<string, string> pairs)
+    {
+        Debug.Log("이벤트 핸들 진입");
+        flagWakeUp = false;
+        eventHandler.onClick(this, serverManager.SendRequest(pairs), EventHandler.HandlingType.Restaurants);
+        Debug.Log("핸들러 온클릭");
+        while (!flagWakeUp)
+            yield return new WaitForSeconds(1.0f);
+        var check = eventHandler.result as JsonData;
+
+        Debug.Log("사용자 정보요청" + check["user"]["name"].ToString() + check["user"]["age"].ToString());
+
+        name = check["user"]["name"].ToString();
+        age = check["user"]["age"].ToString();
+        if (check["user"]["sex"].ToString() == "f")
+        {
+            sex = "여성";
+        }
+        else if(check["user"]["sex"].ToString() == "m")
+        {
+            sex = "남성";
+        }
+        SceneManager.LoadScene("Main");
     }
 
     public void Update()
@@ -106,18 +146,23 @@ public class Login : MonoBehaviour
             {
 
 
-                //서버의 응답을 확인해서 success 이고 자동로그인 체크된경우 로컬에 id, pw저장
                 PlayerPrefs.SetString("ID", IDfield.text);
                 PlayerPrefs.SetString("PW", PWfield.text);
 
+                userId = PlayerPrefs.GetString("ID");
+                userPw = PlayerPrefs.GetString("PW");
+
                 Debug.Log("실행완료");
-                SceneManager.LoadScene("Main");
+
+                getUserInfo();
+                
              
             }
             //자동로그인 체크안된경우 그냥 메인화면으로 넘김
             else
             {
-                SceneManager.LoadScene("Main");
+                getUserInfo();
+               
                 //메인화면 씬으로 전환
             }
         }

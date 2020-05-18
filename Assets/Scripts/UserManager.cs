@@ -26,14 +26,49 @@ public class UserManager : MonoBehaviour
     public GameObject UpdateInfo;
     public GameObject UnMatchCurrentError;
     public GameObject UnMatchChangeError;
+    public GameObject MyHistory;
+    
 
+    public GameObject historyData;
+    public GameObject scrollView;
+    Text[] historyArr;
+
+    int num = 10;
     // Start is called before the first frame update
     void Start()
     {
-        getUserInfo();
+        ScrollRect scroll = scrollView.GetComponent<ScrollRect>();
+      
+        historyArr = historyData.GetComponentsInChildren<Text>();
+        float f = 0;
+        
+        for(int i = 0;i<num;i++)
+        {
+            var Object = Instantiate(historyData,new Vector3(0,f,0),Quaternion.identity);
+            Object.transform.SetParent(scroll.content);
+
+            historyArr[0].text = i.ToString();
+            historyArr[1].text = i.ToString();
+            historyArr[2].text = i.ToString();
+            historyArr[3].text = i.ToString();
+            historyArr[4].text = i.ToString();
+            Debug.Log(historyArr);
+            f -= 203.8f;
+        }
+
+        mailContent.text = Login.userId;
+
+        nameContent.text = Login.name;
+        ageContent.text = Login.age;
+      
+        sexContent.text = Login.sex;
+
+
+
         UpdateInfo.SetActive(false);
         UnMatchCurrentError.SetActive(false);
         UnMatchChangeError.SetActive(false);
+        MyHistory.SetActive(false);
 
         Debug.Log("세션"+PlayerPrefs.GetString("ID"));
 
@@ -42,57 +77,33 @@ public class UserManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Application.platform == RuntimePlatform.Android)
-        {
-            if (Input.GetKey(KeyCode.Escape))
-            {
-                Application.Quit();
-            }
-        }
+        //if (Application.platform == RuntimePlatform.Android)
+        //{
+        //    if (Input.GetKey(KeyCode.Escape))
+        //    {
+        //        SceneManager.LoadScene("Main");
+        //    }
+        //}
     }
-
-    public void getUserInfo()
+    public void clickXbtAthis()
     {
-        var pairs = new Dictionary<string, string>();
-        pairs["url"] = Login.userId + "/profile";
-        pairs["password"] = Login.userPw;
-        //pairs["url"] = "nsh722/profile"; //실제 id넣어야함
-        pairs["method"] = "GET";
-
-        Debug.Log(pairs["url"] + pairs["password"]);
-
-        IEnumerator enumerator = handleUserInfo(pairs);
-
-        StartCoroutine(enumerator);
+        MyHistory.SetActive(false);
     }
-
-
-    private IEnumerator handleUserInfo(Dictionary<string, string> pairs)
+    public void clickHistory()
     {
-        Debug.Log("이벤트 핸들 진입");
-        flagWakeUp = false;
-        eventHandler.onClick(this, serverManager.SendRequest(pairs), EventHandler.HandlingType.Restaurants);
-        Debug.Log("핸들러 온클릭");
-        while (!flagWakeUp)
-            yield return new WaitForSeconds(1.0f);
-        var check = eventHandler.result as JsonData;
 
-        Debug.Log("핸들러 종료");
+        MyHistory.SetActive(true);
 
-        mailContent.text = Login.userId; // 실제 id를 넣어야함
-        nameContent.text = check["user"]["name"].ToString();
-        ageContent.text = check["user"]["age"].ToString();
-        if(check["user"]["sex"].ToString() == "f")
-        {
-            sexContent.text = "여성";
-        }
-        else
-        {
-            sexContent.text = "남성";
-        }
-        
     }
 
+    public void goBackMain()
+    {
+        SceneManager.LoadScene("Main");
+    }
+    public void goBackInfo()
+    {
+        UpdateInfo.SetActive(false);
+    }
     public void clickUpdateInfo()
     {
         UmailContent.text = Login.userId; // 실제 id와 비교 해야함

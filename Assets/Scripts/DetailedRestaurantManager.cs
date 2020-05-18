@@ -141,5 +141,7 @@ public class DetailedRestaurantManager : MonoBehaviour
     {
         Debug.Log("Wake Up!");
         flagWakeUp = true;
+
+        dic.Clear();
     }
 }

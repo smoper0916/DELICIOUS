@@ -70,7 +70,10 @@ class NaverScraper:
         yield info_dict
 
         second_time = time.time()
-        driver.find_element_by_id('tab02').click()
+        tab02 = driver.find_element_by_id('tab02')
+        if tab02 is None:
+            return iter([])
+        tab02.click()
         move_time = time.time()
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')

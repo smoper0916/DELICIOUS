@@ -22,6 +22,7 @@ pkey = 'ssl/privkey.pem'
 context.load_cert_chain(certfile=cert, keyfile=pkey, password='')   # 인증서 로드
 root_path = '/deli/v1' # 기본 경로
 n_scraper = NaverScraper()
+
 db_conn = db.DBConnector(host=host_info[2], user=host_info[3], password=host_info[4], db=host_info[5])
 
 
@@ -33,6 +34,15 @@ def get_fullpath(rpath):
 @app.errorhandler(500)
 def resource_not_found(e):
     return jsonify(error=e.code, code=e.description), 500
+
+
+@app.errorhandler(400)
+@app.errorhandler(401)
+@app.errorhandler(403)
+@app.errorhandler(404)
+@app.errorhandler(405)
+def resource_not_found(e):
+    return jsonify(error=e.code, code=e.description), 400
 
 
 @app.route(get_fullpath('/restaurants/near'), methods=['GET'])
@@ -90,8 +100,22 @@ def get_photo(id):
     return jsonify(result_dict)
 
 
+@app.route(get_fullpath('/<usr_email>'), methods=['GET'])
+def check_user_email(usr_email):
+    #db_conn = db.DBConnector(host=host_info[2], user=host_info[3], password=host_info[4], db=host_info[5])
+    query = "SELECT * FROM user WHERE usr_email = %s"
+    result = db_conn.execute_all(query, usr_email)
+    #result_dict = {}
+    #db_conn.close()
+    if len(result) is not 0:
+        abort(400, "existedAccount")
+
+    return json.dumps({'code':'success'}), 200, {'ContentType':'application/json'}
+
+
 @app.route(get_fullpath('/<usr_email>/profile'), methods=['GET'])
 def get_user(usr_email):
+    #db_conn = db.DBConnector(host=host_info[2], user=host_info[3], password=host_info[4], db=host_info[5])
     query = "SELECT * FROM user WHERE usr_email = %s"
     result = db_conn.execute_all(query, usr_email)
     result_dict = {}
@@ -100,6 +124,7 @@ def get_user(usr_email):
         abort(400, "You can't approach this personal information")
     result = result[0]
     db_conn.commit()
+    #db_conn.close()
     return jsonify(user={'code':result['usr_code'],
                          'name':result['usr_name'],
                          'age':result['usr_age'],
@@ -108,12 +133,13 @@ def get_user(usr_email):
 
 @app.route(get_fullpath('/<usr_email>/profile'), methods=['POST'])
 def create_user(usr_email):
+    #db_conn = db.DBConnector(host=host_info[2], user=host_info[3], password=host_info[4], db=host_info[5])
     ####### 중복 확인해서 미리 거르는 코드
     input_email = usr_email
     duplicate_check_query = "SELECT * FROM user WHERE usr_email = %s"
 
     if len(db_conn.execute_all(duplicate_check_query, input_email)) > 0:
-        abort(400, "This E-mail has been already registered. Please check your E-mail again")
+        abort(400, "existedAccount")
     ####### 중복 확인해서 미리 거르는 코드
 
     ##### if it doesn't have token
@@ -145,12 +171,14 @@ def create_user(usr_email):
         db_conn.execute(query, parameter)
         db_conn.commit()
 
+    #db_conn.close()
     # 성공 신호 200 보내기
     return json.dumps({'code':'success'}), 200, {'ContentType':'application/json'}
 
 
 @app.route(get_fullpath('/<usr_email>/profile'), methods=['PUT'])
 def update_user(usr_email):
+    #db_conn = db.DBConnector(host=host_info[2], user=host_info[3], password=host_info[4], db=host_info[5])
     param_json = json.loads(request.get_data().decode('ascii'))
     query = "UPDATE user SET usr_pw = %s WHERE usr_email = %s"
     usr_pw = param_json['new_password']
@@ -158,16 +186,17 @@ def update_user(usr_email):
     parameter = (usr_pw, usr_email)
     db_conn.execute_one(query, parameter)
     db_conn.commit()
-
+    #db_conn.close()
     return json.dumps({'code':'success'}), 200, {'ContentType':'application/json'}
 
 
 @app.route(get_fullpath('/<usr_email>'), methods=['DELETE'])
 def delete_user(usr_email):
+    #db_conn = db.DBConnector(host=host_info[2], user=host_info[3], password=host_info[4], db=host_info[5])
     query = "DELETE FROM user WHERE usr_email = %s"
     db_conn.execute(query, usr_email)
     db_conn.commit() # 회원 탈퇴 commit
-
+    #db_conn.close()
     return json.dumps({'code':'success'}), 200, {'ContentType':'application/json'}
 
 
@@ -177,6 +206,48 @@ def kakao_auth():
     return render_template('kakao_response.html')
 
 
+@app.route(get_fullpath('/user/auth'), methods=['POST'])
+def user_auth():
+    email = request.form["id"]
+    password = request.form["password"]
+    #db_conn = db.DBConnector(host=host_info[2], user=host_info[3], password=host_info[4], db=host_info[5])
+
+    #email = request.args.get("id")
+    #password = request.args.get("password")
+    #db_conn = db.DBConnector(host=host_info[2], user=host_info[3], password=host_info[4], db=host_info[5])
+    print("input_email : " + email + ", input_password : " + password + "\n")
+    query_account_exist = "SELECT * FROM user WHERE usr_email = %s"
+    _parameter = (email, )
+    _result = db_conn.execute_all(query_account_exist, _parameter)
+
+    ## 없는 아이디 처리
+    if len(_result) is 0:
+        #db_conn.close()
+        return json.dumps({'code':'unexpected'}), 500, {'ContentType':'application/json'}
+    else:
+        query_auth_pw = "SELECT * FROM user WHERE usr_email = %s AND usr_pw = %s"
+        parameter = (email, password)
+        result = db_conn.execute_all(query_auth_pw, parameter)
+        ### 비밀번호 오류
+        if len(result) is 0:
+            #db_conn.close()
+            return json.dumps({'code': 'notMatch'}), 400, {'ContentType': 'application/json'}
+        ### 정상 작동
+        else:
+            #db_conn.close()
+            return json.dumps({'code': 'success'}), 200, {'ContentType': 'application/json'}
+
+@app.route(get_fullpath('/<usr_email>/check'), methods=['GET'])
+def duplicate_check_user(usr_email):
+    #db_conn = db.DBConnector(host=host_info[2], user=host_info[3], password=host_info[4], db=host_info[5])
+    query = "SELECT * FROM user WHERE usr_email = %s"
+    parameter = (usr_email,)
+    result = db_conn.execute_all(query, parameter)
+    #db_conn.close()
+    if len(result) > 0:
+        return json.dumps({'code': 'duplicated'}), 400, {'ContentType': 'application/json'}
+    else:
+        return json.dumps({'code': 'success'}), 200, {'ContentType': 'application/json'}
 '''
     limit remote addr : 
     모든 요청 처리 전 미리 host를 확인해서 도메인이 아닌 IP로의 접근을 원천 차단함.
@@ -190,3 +261,4 @@ def limit_remote_addr(): #IP주소로 들어오는 외국의 못된 친구들을
 if __name__ == '__main__':
     app.config['JSON_AS_ASCII'] = False #한글을 깨지는거 방지(utf-8)
     app.run(host='0.0.0.0', port=host_info[1], ssl_context=context) #외부 오픈(0.0.0.0) #port = 80(http(default)), 433(https(ssl))
+    #db_conn.close()

@@ -46,8 +46,7 @@ public class UserManager : MonoBehaviour
         
         for(int i = 0;i<num;i++)
         {
-            var Object = Instantiate(historyData,new Vector3(0,f,0),Quaternion.identity);
-            Object.transform.SetParent(scroll.content);
+            var Object = Instantiate(historyData, new Vector3(0, f, 0), Quaternion.identity, scroll.content);
 
             historyArr[0].text = i.ToString();
             historyArr[1].text = i.ToString();

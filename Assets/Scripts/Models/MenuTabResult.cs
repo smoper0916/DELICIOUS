@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public class MenuTabResult
 {
-    List<Menu> menuList { get; set; }
+    public List<Menu> menuList { get; set; }
 
     public string desc { get; set; }
     public string tvHistory { get; set; }

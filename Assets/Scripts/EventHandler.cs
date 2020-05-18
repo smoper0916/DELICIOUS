@@ -68,7 +68,7 @@ public class EventHandler : MonoBehaviour
                         }
                         break;
                     case HandlingType.Reviews:
-                        if (dict.Contains("info"))
+                        if (dict.Contains("records"))
                         {
                             List<Review> reviewList = new List<Review>();
                             foreach (JsonData i in jsonResult["records"])
@@ -124,6 +124,7 @@ public class EventHandler : MonoBehaviour
 
     public void onClick(MonoBehaviour owner, IEnumerator target, HandlingType type)
     {
+        isDone = false;
         this.target = target;
         this.coroutine = owner.StartCoroutine(Run());
         events.Enqueue((owner, target, type));

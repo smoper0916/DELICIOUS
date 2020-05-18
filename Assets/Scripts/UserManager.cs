@@ -32,14 +32,16 @@ public class UserManager : MonoBehaviour
     public GameObject historyData;
     public GameObject scrollView;
     Text[] historyArr;
+    //Image navi;
 
     int num = 10;
     // Start is called before the first frame update
     void Start()
     {
+
         ScrollRect scroll = scrollView.GetComponent<ScrollRect>();
-      
         historyArr = historyData.GetComponentsInChildren<Text>();
+        //navi = historyData.transform.Find("Image").GetComponent<Image>();
         float f = 0;
         
         for(int i = 0;i<num;i++)
@@ -52,6 +54,8 @@ public class UserManager : MonoBehaviour
             historyArr[2].text = i.ToString();
             historyArr[3].text = i.ToString();
             historyArr[4].text = i.ToString();
+            //navi.sprite = Resources.Load("btnNavigating", typeof(Sprite)) as Sprite;
+
             Debug.Log(historyArr);
             f -= 203.8f;
         }

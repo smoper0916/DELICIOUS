@@ -99,13 +99,20 @@ public class AnchorManager : MonoBehaviour
     }
     private IEnumerator loadRestaurants()
     {
+        while (!GPSManager.Instance.isReady)
+        {
+            yield return new WaitForSeconds(1.0f);
+        }
+
         // Conversion factors
         float degreesLatitudeInMeters = 111132;
         degreesLongitudeInMetersAtEquator = 111319.9f;
 
         // Real GPS Position - This will be the world origin.
-        var gpsLat = 36.1377368f; //GPSManager.Instance.latitude;
-        var gpsLon = 128.4195133f; //GPSManager.Instance.longitude;
+        //var gpsLat = 36.1377368f; //GPSManager.Instance.latitude;
+        //var gpsLon = 128.4195133f; //GPSManager.Instance.longitude;
+        var gpsLat = GPSManager.Instance.latitude;
+        var gpsLon = GPSManager.Instance.longitude;
 
         dic.Add("url", "restaurants/near");
         dic.Add("method", "GET");
@@ -162,5 +169,13 @@ public class AnchorManager : MonoBehaviour
         lookAt.SetLookRotation(lookAtVec);
 
         return lookAt;
+    }
+    public IEnumerator waitForGPSReady()
+    {
+        while (!GPSManager.Instance.isReady)
+        {
+            Debug.Log("Waiting...");
+            yield return new WaitForSeconds(1.0f);
+        }
     }
 }

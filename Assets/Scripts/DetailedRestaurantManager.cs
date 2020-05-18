@@ -87,10 +87,25 @@ public class DetailedRestaurantManager : MonoBehaviour
         menuScrollRect.SetActive(false);
         photoScrollRect.SetActive(false);
 
+        reviewScrollRect.SetActive(true);
+
         ReviewTabResult reviewTabResult = eventHandler.result as ReviewTabResult;
 
         ScrollRect scrollRect = reviewScrollRect.GetComponent<ScrollRect>();
+        Debug.Log(scrollRect.content.transform.parent);
         float y = 0;
+
+        if (reviewTabResult.reviewList.Count == 0)
+        {
+            var datas = Instantiate(ReviewData, new Vector3(0, y, 0), Quaternion.identity);
+            Text[] texts = datas.GetComponentsInChildren<Text>();
+
+            texts[0].text = "";
+            texts[1].text = "리뷰가 없습니다.";
+
+            datas.transform.SetParent(scrollRect.content);
+        }
+
         foreach(Review review in reviewTabResult.reviewList)
         {
             var datas = Instantiate(ReviewData, new Vector3(0, y, 0), Quaternion.identity);
@@ -104,9 +119,7 @@ public class DetailedRestaurantManager : MonoBehaviour
             y -= datas.GetComponent<RectTransform>().rect.height;
 
         }
-        
-        reviewScrollRect.SetActive(true);
-
+    
     }
     private IEnumerator loadPhoto()
     {
@@ -141,5 +154,7 @@ public class DetailedRestaurantManager : MonoBehaviour
     {
         Debug.Log("Wake Up!");
         flagWakeUp = true;
+
+        dic.Clear();
     }
 }

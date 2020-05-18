@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 public class ReviewTabResult
 {
-    List<Review> reviewList { get; set; }
+    public List<Review> reviewList { get; set; }
 
     public int pages { get; set; }
     public float avg { get; set; }

@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 public class Menu
 {
     
-    string name { get; set; }
-    string price { get; set; }
-    string img { get; set; }
+    public string name { get; set; }
+    public string price { get; set; }
+    public string img { get; set; }
 
     public Menu(string name, string price)
     {

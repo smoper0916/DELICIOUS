@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Networking;
 
 public class DetailedRestaurantManager : MonoBehaviour
 {
@@ -21,6 +22,7 @@ public class DetailedRestaurantManager : MonoBehaviour
     public GameObject photoScrollRect;
 
     public GameObject ReviewData;
+    public GameObject PhotoData;
 
     GameObject target;
     TextMesh[] textMeshs;
@@ -56,7 +58,7 @@ public class DetailedRestaurantManager : MonoBehaviour
             yield return new WaitForSeconds(1.0f);
 
         menuTabResult = eventHandler.result as MenuTabResult;
-        
+
         foreach (Menu menu in menuTabResult.menuList)
         {
             txt = txt + menu.name + "------------" + menu.price + "\n";
@@ -97,29 +99,26 @@ public class DetailedRestaurantManager : MonoBehaviour
 
         if (reviewTabResult.reviewList.Count == 0)
         {
-            var datas = Instantiate(ReviewData, new Vector3(0, y, 0), Quaternion.identity);
+            var datas = Instantiate(ReviewData, new Vector3(0, y, 0), Quaternion.identity,scrollRect.content);
             Text[] texts = datas.GetComponentsInChildren<Text>();
 
             texts[0].text = "";
             texts[1].text = "리뷰가 없습니다.";
 
-            datas.transform.SetParent(scrollRect.content);
         }
 
-        foreach(Review review in reviewTabResult.reviewList)
+        foreach (Review review in reviewTabResult.reviewList)
         {
-            var datas = Instantiate(ReviewData, new Vector3(0, y, 0), Quaternion.identity);
+            var datas = Instantiate(ReviewData, new Vector3(0, y, 0), Quaternion.identity, scrollRect.content);
             Text[] texts = datas.GetComponentsInChildren<Text>();
 
             texts[0].text = review.rating + "    " + review.date;
             texts[1].text = review.text;
 
-            datas.transform.SetParent(scrollRect.content);
-
             y -= datas.GetComponent<RectTransform>().rect.height;
 
         }
-    
+
     }
     private IEnumerator loadPhoto()
     {
@@ -130,6 +129,24 @@ public class DetailedRestaurantManager : MonoBehaviour
 
         while (!flagWakeUp)
             yield return new WaitForSeconds(1.0f);
+
+        List<string> urls = eventHandler.result as List<string>;
+
+        ScrollRect scrollRect = photoScrollRect.GetComponent<ScrollRect>();
+
+        float y = 0;
+        for (int i = 0; i < urls.Count / 2 + 1; i++)
+        {
+            var datas = Instantiate(PhotoData, new Vector3(0, y, 0), Quaternion.identity,scrollRect.content);
+            RawImage[] photos = scrollRect.content.GetComponentsInChildren<RawImage>();
+
+            StartCoroutine(downloadPhoto(urls[i], photos[0]));
+
+            StartCoroutine(downloadPhoto(urls[i + 1], photos[1]));
+
+            y -= 400;
+
+        }
 
         menuScrollRect.SetActive(false);
         reviewScrollRect.SetActive(false);
@@ -148,6 +165,24 @@ public class DetailedRestaurantManager : MonoBehaviour
     public void selectPhotoTap()
     {
         StartCoroutine(loadPhoto());
+    }
+
+    private IEnumerator downloadPhoto(string url, RawImage image)
+    {
+        url = url + "&type=h100";
+        UnityWebRequest www = UnityWebRequestTexture.GetTexture(url);
+        yield return www.SendWebRequest();
+
+        if (www.isNetworkError)
+        {
+            Debug.Log(www.error);
+        }
+        else
+        {
+            Texture myTexture = ((DownloadHandlerTexture)www.downloadHandler).texture;
+            image.texture = myTexture;
+        }
+
     }
 
     public void WakeUp()

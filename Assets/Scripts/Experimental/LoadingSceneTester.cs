@@ -1,64 +1,99 @@
-﻿//using System;
-//using System.Collections;
-//using System.Collections.Generic;
-//using UnityEngine;
+﻿using LitJson;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
-//public class LoadingSceneTester : MonoBehaviour
-//{
-//    public EventHandler eventHandler;
-//    private ServerManager serverManager = new ServerManager();
+public class LoadingSceneTester : MonoBehaviour
+{
+    public EventHandler eventHandler;
+    private ServerManager serverManager = new ServerManager();
 
-//    public bool flagWakeUp = false;
+    public bool flagWakeUp = false;
 
-//    private IEnumerator waitThenCallback(float time, Action callback)
-//    {
-//        yield return new WaitForSeconds(time);
-//        callback();
-//    }
+    private IEnumerator waitThenCallback(float time, Action callback)
+    {
+        yield return new WaitForSeconds(time);
+        callback();
+    }
 
-//    // Start is called before the first frame update
-//    void Start()
-//    {
-//        Input.gyro.enabled = true;
-//        StartCoroutine(OnGyro);
-//    }
+    // Start is called before the first frame update
+    void Start()
+    {
+        Input.gyro.enabled = true;
+        StartCoroutine(DoLoop());
+    }
 
-//    // Update is called once per frame
-//    void Update()
-//    {
-        
-//    }
+    // Update is called once per frame
+    void Update()
+    {
 
-//    public IEnumerator OnGyro()
-//    {
-//        StartCoroutine(waitThenCallback(1, () => { Debug.Log(Input.gyro.attitude+","+Input.gyro.gravity+","+Input.gyro.) }));
-//    }
+    }
+    public IEnumerator DoLoop()
+    {
+        while (true)
+        {
+            var heading = Math.Atan2(Input.gyro.attitude.x, Input.gyro.attitude.z);
+            var declination = 0.145735;
+            heading += declination;
 
-//    public void OnClick()
-//    {
-//        SceneLoader.Instance.LoadScene("Login");
-//    }
+            if (heading < 0) heading += 2 * Math.PI;
+            if (heading > 2 * Math.PI) heading -= 2 * Math.PI;
 
-//    public void EventHandlerTest()
-//    {
-//        flagWakeUp = false;
-//        StartCoroutine(waitThenCallback(
-//            1,
-//            () =>
-//            {
-//                Dictionary<string, string> dic = new Dictionary<string, string>();
+            var headingDegress = heading * 180 / Math.PI;
 
-//                dic.Add("url", "restaurant/37275398/photo");
-//                dic.Add("method", "GET");
+            //headingFiltered = headingF
+            Debug.Log(headingDegress);
+            yield return new WaitForSeconds(1);
+        }
+    }
+    public IEnumerator DoLoop2()
+    {
+        Dictionary<string, string> dic = new Dictionary<string, string>();
 
-//                eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Photo);
-//            }
-//            )
-//           );
-//    }
+        dic.Add("url", "restaurant/1476730341/reviews");
+        dic.Add("method", "GET");
 
-//    public void WakeUp()
-//    {
-//        flagWakeUp = true;
-//    }
-//}
+        eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Reviews);
+
+        while (!flagWakeUp)
+            yield return new WaitForSeconds(1.0f);
+
+        if (eventHandler.result != null)
+        {
+            if (eventHandler.result is ReviewTabResult)
+            {
+                ReviewTabResult jsonResult = (ReviewTabResult)(eventHandler.result);
+                Debug.Log("AA -> " + jsonResult.reviewList);
+                foreach (Review i in jsonResult.reviewList)
+                {
+                    Debug.Log("" + i.name);
+                    Debug.Log("" + i.rating);
+                    Debug.Log("" + i.text);
+                }
+            }
+            else
+            {
+                Debug.Log("BB : " + eventHandler.result);
+            }
+        }
+    }
+
+    public void OnClick()
+    {
+        SceneLoader.Instance.LoadScene("Login");
+    }
+
+    public void EventHandlerTest()
+    {
+        flagWakeUp = false;
+        StartCoroutine(DoLoop2());
+
+
+    }
+
+    public void WakeUp()
+    {
+        flagWakeUp = true;
+    }
+}

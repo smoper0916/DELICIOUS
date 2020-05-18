@@ -11,6 +11,8 @@ public class GPSManager : MonoBehaviour
     public float heading;
     public float headingAccuracy;
 
+    public bool isReady = false;
+
     [HideInInspector]
     public bool isRunning = true;
 
@@ -26,6 +28,7 @@ public class GPSManager : MonoBehaviour
 
     private IEnumerator StartLocationService()
     {
+        isReady = false;
         ServiceStatus = LocationServiceStatus.Initializing;
 
         Input.compass.enabled = true;
@@ -79,11 +82,12 @@ public class GPSManager : MonoBehaviour
             latitude = Input.location.lastData.latitude;
             longitude = Input.location.lastData.longitude;
 
-            heading = Input.compass.magneticHeading;
+            heading = -Input.compass.trueHeading;
             headingAccuracy = Input.compass.headingAccuracy;
             ServiceStatus = Input.location.status;
 
             Debug.Log(string.Format("Lat: {0} Long: {1} Heading: {2} HeadingAccuracy : {3}", latitude, longitude, heading, headingAccuracy));
+            if (!isReady) isReady = true;
         }
         else
         {

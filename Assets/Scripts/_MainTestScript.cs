@@ -13,8 +13,8 @@ public class _MainTestScript : MonoBehaviour
     void Start()
     {
         //arcoreDevice.SetActive(false);
-        Input.compass.enabled = true;
-        cameraObj.transform.rotation = Quaternion.Euler(0, -Input.compass.magneticHeading, 0);
+        //Input.compass.enabled = true;
+        //cameraObj.transform.rotation = Quaternion.Euler(0, -Input.compass.trueHeading, 0);
         //cameraObj.transform.rotation = Quaternion.Euler(0, Input.compass.trueHeading, 0);
         //StartCoroutine(DoLoop());
     }
@@ -22,10 +22,10 @@ public class _MainTestScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        currentHeading = Quaternion.Euler(0, -Input.compass.magneticHeading, 0);
+        //currentHeading = Quaternion.Euler(0, -Input.compass.trueHeading, 0);
 
-        cameraObj.transform.rotation = Quaternion.Slerp(cameraObj.transform.rotation,
-            currentHeading, Time.deltaTime * 2f);
+        //cameraObj.transform.rotation = Quaternion.Slerp(cameraObj.transform.rotation,
+           // currentHeading, Time.deltaTime * 3f);
     }
 
     public IEnumerator DoLoop()
@@ -33,7 +33,7 @@ public class _MainTestScript : MonoBehaviour
         arcoreDevice.SetActive(true);
         while (true)
         {
-            cameraObj.transform.rotation = Quaternion.Euler(0, -Input.compass.magneticHeading, 0);
+            cameraObj.transform.rotation = Quaternion.Euler(0, Input.compass.magneticHeading, 0);
             Debug.Log("R: " + cameraObj.transform.rotation + ", T: " + cameraObj.transform.position);
             yield return new WaitForSeconds(1);
         }

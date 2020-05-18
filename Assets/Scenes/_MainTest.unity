@@ -1862,6 +1862,7 @@ MonoBehaviour:
   serverManager: {fileID: 918826061}
   anchoredPrefab: {fileID: 3395460497252656247, guid: 2ffb3d307f1f23240a5e093a67d56ead,
     type: 3}
+  detailedRestaurantManager: {fileID: 0}
   canvas: {fileID: 483860339}
 --- !u!114 &831739644
 MonoBehaviour:
@@ -1891,7 +1892,7 @@ MonoBehaviour:
   m_Device: 0
   m_PoseSource: 6
   m_PoseProviderComponent: {fileID: 0}
-  m_TrackingType: 2
+  m_TrackingType: 0
   m_UpdateType: 0
   m_UseRelativeTransform: 0
 --- !u!81 &831739646
@@ -2292,6 +2293,7 @@ MonoBehaviour:
   longitude: 0
   heading: 0
   headingAccuracy: 0
+  isReady: 1
   isRunning: 1
   ServiceStatus: 0
 --- !u!114 &1024814137

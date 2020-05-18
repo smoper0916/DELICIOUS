@@ -68,7 +68,7 @@ public class EventHandler : MonoBehaviour
                         }
                         break;
                     case HandlingType.Reviews:
-                        if (dict.Contains("info"))
+                        if (dict.Contains("records"))
                         {
                             List<Review> reviewList = new List<Review>();
                             foreach (JsonData i in jsonResult["records"])

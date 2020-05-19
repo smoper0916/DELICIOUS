@@ -108,11 +108,11 @@ public class AnchorManager : MonoBehaviour
         float degreesLatitudeInMeters = 111132;
         degreesLongitudeInMetersAtEquator = 111319.9f;
 
-        // Real GPS Position - This will be the world origin.
-        //var gpsLat = 36.1377368f; //GPSManager.Instance.latitude;
-        //var gpsLon = 128.4195133f; //GPSManager.Instance.longitude;
-        var gpsLat = GPSManager.Instance.latitude;
-        var gpsLon = GPSManager.Instance.longitude;
+        //Real GPS Position - This will be the world origin.
+        var gpsLat = 36.1377368f; //GPSManager.Instance.latitude;
+        var gpsLon = 128.4195133f; //GPSManager.Instance.longitude;
+        //var gpsLat = GPSManager.Instance.latitude;
+        //var gpsLon = GPSManager.Instance.longitude;
 
         dic.Add("url", "restaurants/near");
         dic.Add("method", "GET");

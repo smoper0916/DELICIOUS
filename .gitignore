@@ -58,8 +58,16 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+/Assets/Scenes/_MainTest.unity
+/Assets/Scenes/_MainTest.unity.meta
+/Assets/Scripts/_MainTestScript.cs
+/Assets/Scripts/_MainTestScript.cs.meta
 /Assets/GoogleARCore
 /Assets/LJR
 /Assets/PlayServicesResolver
 /Assets/Plugins
 /Assets/LJR.meta
+/Packages
+/packages.config
+/app.config
+/200518_1_B.zip

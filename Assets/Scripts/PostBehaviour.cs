@@ -9,23 +9,60 @@ public class PostBehaviour : MonoBehaviour
 {
     private Text res;
     private Button btn;
+    public ServerManager serverManager;
 
     private CertificateHandler cert;
+
+    public CoroutineManager coroutineManager = null;
+
+    public bool isFirst = true;
+
     void Start()
     {
+        this.serverManager = new ServerManager();
+
         //btn = GameObject.Find("ConnectBtn").GetComponent<Button>();
         //res = GameObject.Find("ConnectTxt").GetComponent<Text>();
         //btn.onClick.AddListener(OnClick);
 
         var pairs = new Dictionary<string, string>();
         var serverManager = new ServerManager();
-        pairs["url"] = "smoper1234@dfjfdk.com/profile";
-        pairs["method"] = "POST";
+        pairs["url"] = "smoper123459@dfjfdk.com/profile";
+        pairs["method"] = "GET";
         pairs["password"] = "rkskkgkd1564";
         pairs["age"] = "12";
         pairs["sex"] = "f";
         pairs["name"] = "박갑수dkdk";
-        StartCoroutine(serverManager.SendRequest(pairs));
+
+        IEnumerator sender = this.serverManager.SendRequest(pairs);
+
+        coroutineManager = new CoroutineManager(this, sender);
+
+        //while (sender.MoveNext())
+        //{
+        //    object result = sender.Current;
+
+        //    if (result is UnityWebRequestAsyncOperation)
+        //    {
+        //        var r = (UnityWebRequestAsyncOperation)result;
+        //        while (!r.webRequest.isDone)
+        //        {
+        //            Debug.Log(r.isDone);
+        //        }
+        //        var res = r.webRequest.downloadHandler.text;
+        //        JsonData obj = JsonMapper.ToObject(res);
+        //        Debug.Log(res);
+        //    }
+        //    else if (result is JsonData)
+        //    {
+        //        Debug.Log((JsonData)result);
+        //    }
+        //    else
+        //    {
+        //        Debug.Log(result);
+        //    }
+        //}
+
     }
 
     void OnClick()
@@ -38,8 +75,28 @@ public class PostBehaviour : MonoBehaviour
 
     private void Update()
     {
+        if (isFirst && coroutineManager.isDone)
+        {
+            if (coroutineManager.result != null)
+            {
+                if (coroutineManager.result is JsonData)
+                {
+                    JsonData jsonResult = (JsonData)(coroutineManager.result);
+                    Debug.Log("In Update : " + jsonResult["code"]);
+                    
+                }
+                else
+                {
+                    Debug.Log("In Update : " + coroutineManager.result);
+                }
+            }
+            isFirst = false;
+        }
 
     }
+
+    
+
     IEnumerator SendMsg() // Post 방식 서버 연동
     {
         //List<IMultipartFormSection> formData = new List<IMultipartFormSection>();

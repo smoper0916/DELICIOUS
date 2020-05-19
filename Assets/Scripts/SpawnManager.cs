@@ -24,8 +24,8 @@ public class SpawnManager : MonoBehaviour
     void Update()
     {
         // Real GPS Position - This will be the world origin.
-        float gpsLat = GPSManager_NoCompass.Instance.latitude;
-        float gpsLon = GPSManager_NoCompass.Instance.longitude;
+        float gpsLat = GPSManager.Instance.latitude;
+        float gpsLon = GPSManager.Instance.longitude;
         // GPS position converted into unity coordinates
         if (latitude != gpsLat || longitude != gpsLon)
         {

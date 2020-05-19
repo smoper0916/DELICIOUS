@@ -34,7 +34,7 @@ public class UserManager : MonoBehaviour
     Text[] historyArr;
     //Image navi;
 
-    int num = 10;
+    int num = 0;
     // Start is called before the first frame update
     void Start()
     {
@@ -43,10 +43,18 @@ public class UserManager : MonoBehaviour
         historyArr = historyData.GetComponentsInChildren<Text>();
         //navi = historyData.transform.Find("Image").GetComponent<Image>();
         float f = 0;
-        
-        for(int i = 0;i<num;i++)
+     
+        foreach(Text data in historyArr)
         {
             var Object = Instantiate(historyData, new Vector3(0, f, 0), Quaternion.identity, scroll.content);
+            num++;
+            data.text = num.ToString();
+             f -= 203.8f;
+        }
+
+        for(int i = 0;i<num;i++)
+        {
+            
 
             historyArr[0].text = i.ToString();
             historyArr[1].text = i.ToString();
@@ -56,7 +64,7 @@ public class UserManager : MonoBehaviour
             //navi.sprite = Resources.Load("btnNavigating", typeof(Sprite)) as Sprite;
 
             Debug.Log(historyArr);
-            f -= 203.8f;
+           
         }
 
         mailContent.text = Login.userId;

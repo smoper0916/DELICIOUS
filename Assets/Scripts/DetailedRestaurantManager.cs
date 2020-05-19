@@ -24,6 +24,8 @@ public class DetailedRestaurantManager : MonoBehaviour
     public GameObject ReviewData;
     public GameObject PhotoData;
 
+    public Button btn;
+
     GameObject target;
     TextMesh[] textMeshs;
 
@@ -169,7 +171,7 @@ public class DetailedRestaurantManager : MonoBehaviour
 
     private IEnumerator downloadPhoto(string url, RawImage image)
     {
-        url = url + "&type=h100";
+        url = url;
         UnityWebRequest www = UnityWebRequestTexture.GetTexture(url);
         yield return www.SendWebRequest();
 
@@ -191,5 +193,9 @@ public class DetailedRestaurantManager : MonoBehaviour
         flagWakeUp = true;
 
         dic.Clear();
+    }
+    public void Exit()
+    {
+        
     }
 }

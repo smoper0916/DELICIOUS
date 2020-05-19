@@ -29,7 +29,7 @@ public class AnchorManager : MonoBehaviour
     private bool flagCreate = false;
 
     public GameObject canvas;
-
+    public GameObject loadingBar;
     private void Start()
     {
         StartCoroutine(loadRestaurants());
@@ -109,10 +109,10 @@ public class AnchorManager : MonoBehaviour
         degreesLongitudeInMetersAtEquator = 111319.9f;
 
         //Real GPS Position - This will be the world origin.
-        var gpsLat = 36.1377368f; //GPSManager.Instance.latitude;
-        var gpsLon = 128.4195133f; //GPSManager.Instance.longitude;
-        //var gpsLat = GPSManager.Instance.latitude;
-        //var gpsLon = GPSManager.Instance.longitude;
+        //var gpsLat = 36.1377368f;
+        //var gpsLon = 128.4195133f;
+        var gpsLat = GPSManager.Instance.latitude;
+        var gpsLon = GPSManager.Instance.longitude;
 
         dic.Add("url", "restaurants/near");
         dic.Add("method", "GET");
@@ -145,6 +145,7 @@ public class AnchorManager : MonoBehaviour
 
             vectors.Add(vector3);
         }
+        loadingBar.SetActive(false);
         //yield return new WaitUntil(() => flagWakeUp == true);
     }
     private float GetLongitudeDegreeDistance(float latitude)

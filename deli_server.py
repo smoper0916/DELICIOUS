@@ -24,7 +24,7 @@ root_path = '/deli/v1' # 기본 경로
 n_scraper = NaverScraper()
 
 db_conn = db.DBConnector(host=host_info[2], user=host_info[3], password=host_info[4], db=host_info[5])
-
+tmap_project_keys = APIKeyLoader.load('tmap_project_key.dll')
 
 # 상대경로의 Full Path를 넘겨주는 함수
 def get_fullpath(rpath):
@@ -248,6 +248,44 @@ def duplicate_check_user(usr_email):
         return json.dumps({'code': 'duplicated'}), 400, {'ContentType': 'application/json'}
     else:
         return json.dumps({'code': 'success'}), 200, {'ContentType': 'application/json'}
+
+
+@app.route(get_fullpath('/routes/ped'), methods=['GET'])
+def get_route():
+    startX = request.args.get("startX")
+    startY = request.args.get("startY")
+    endX = request.args.get("endX")
+    endY = request.args.get("endY")
+
+    url = "https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1&format=json&callback=result"
+    response = requests.request(method='POST', url=url, data={
+        "appKey" : tmap_project_keys[0],
+        "startX": startX,
+        "startY": startY,
+        "endX": endX,
+        "endY": endY,
+        "reqCoordType": "WGS84GEO",
+        "resCoordType": "WGS84GEO",
+        'startName' : "시작",
+        'endName' : "도착"
+    })
+
+    if response.status_code == 200:
+        print(type(response))
+        json_data = response.json()
+
+        point_arr = []
+        for i in json_data["features"]:
+            geo = i["geometry"]
+            if geo["type"] == "LineString":
+                for j in geo["coordinates"]:
+                    point_arr.append({'lon':j[0], 'lat':j[1]})
+        # print(type(json_data))
+        return jsonify({"features": point_arr})
+    else:
+        return json.dumps({'code':'unexpected'}), 500, {'ContentType':'application/json'}
+
+
 '''
     limit remote addr : 
     모든 요청 처리 전 미리 host를 확인해서 도메인이 아닌 IP로의 접근을 원천 차단함.

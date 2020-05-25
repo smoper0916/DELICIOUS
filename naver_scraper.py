@@ -2,6 +2,9 @@ from bs4 import BeautifulSoup
 import requests
 from flask import json
 # import multiprocessing
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.keys import Keys
+
 from common_utils import GeoUtil
 import time
 from selenium import webdriver
@@ -41,9 +44,9 @@ class NaverScraper:
         # nlink = soup.find("a", {"class": "btn"}) # 네이버 예약 링크
         # if nlink is not None and 'booking.naver.com' not in nlink.attrs['href']:
         #     nlink = None
-        desc_area = soup.find("div", {"class":"list_item list_item_desc"})
+        desc_area = soup.find("div", {"class": "list_item list_item_desc"})
         if desc_area is not None:
-            btn_more = desc_area.find("a", {"class":"btn_more", "aria-label":"펼쳐보기"})
+            btn_more = desc_area.find("a", {"class": "btn_more", "aria-label": "펼쳐보기"})
             if btn_more is not None:
                 driver.find_element_by_xpath('//div/a[@aria-label="펼쳐보기"]').click()
                 soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -54,11 +57,12 @@ class NaverScraper:
             biztime : 영업시간 / telephone : 전화번호 / addr : 도로명주소 / homepage : 홈페이지 / convenience : 편의시설
             tv_history : TV 출연내역 / desc : 식당 설명
         '''
-        for key_name, (tag_name, tag_class) in zip(["biztime", "telephone", "addr", "convenience", "tv_history", "desc"],
-                           [("div", "biztime_row"), ("div", "list_item list_item_biztel"), ("span", "addr"),
-                            ("div", "convenience"), ("div", "list_item list_item_tv"),
-                            ("div", "list_item list_item_desc"), ]):
-            parsed = bizinfo_area.find(tag_name, {"class": tag_class}) # Business Time
+        for key_name, (tag_name, tag_class) in zip(
+                ["biztime", "telephone", "addr", "convenience", "tv_history", "desc"],
+                [("div", "biztime_row"), ("div", "list_item list_item_biztel"), ("span", "addr"),
+                 ("div", "convenience"), ("div", "list_item list_item_tv"),
+                 ("div", "list_item list_item_desc"), ]):
+            parsed = bizinfo_area.find(tag_name, {"class": tag_class})  # Business Time
             if parsed is not None:
                 info_dict[key_name] = parsed.text
 
@@ -70,10 +74,11 @@ class NaverScraper:
         yield info_dict
 
         second_time = time.time()
-        tab02 = driver.find_element_by_id('tab02')
-        if tab02 is None:
+        try:
+            tab02 = driver.find_element_by_id('tab02')
+        except NoSuchElementException as e:
             return iter([])
-        tab02.click()
+        driver.find_element_by_id('tab02').send_keys(Keys.ENTER)
         move_time = time.time()
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -127,7 +132,6 @@ class NaverScraper:
         # for name in soup.select('#content > div:nth-child(2) > div.bizinfo_area > div > div.list_item.list_item_menu > div > ul > li:nth-child(1) > div > div > div > span'):
         #     print(name.text)
 
-
         title = soup.findAll("div", {"class": "tit"})
         price = soup.findAll("div", {"class": "price"})
 
@@ -157,7 +161,8 @@ class NaverScraper:
         soup = BeautifulSoup(html, 'html.parser')
         try:
             score = \
-            soup.select("#panel01 > div > div.sc_box.booking_review > div.raing_area > div.star_area > span.score")[0]
+                soup.select("#panel01 > div > div.sc_box.booking_review > div.raing_area > div.star_area > span.score")[
+                    0]
             # rint("평점:",score.text)
         except:
             print("평점정보 없음")
@@ -187,16 +192,19 @@ class NaverScraper:
 
     # 리뷰, 평점 가져오는부분
     def scrape_review_score(self, id, page, only_score=False):
-        add_score = 0; count = 0
+        add_score = 0;
+        count = 0
 
         response = requests.get(
             "https://store.naver.com/restaurants/detail?entry=pll&id=" + str(
-            id) + "&tab=receiptReview&tabPage=" + str(page))
+                id) + "&tab=receiptReview&tabPage=" + str(page))
         html = response.text
         soup = BeautifulSoup(html, 'html.parser')
         score = soup.findAll("span", {"class": "score"})
-        reviewer_area = soup.findAll("div", {"class": "reviewer_area"}) if not only_score else [None for x in range(len(score))]
-        review_txt = soup.findAll("div", {"class": "review_txt"}) if not only_score else [None for x in range(len(score))]
+        reviewer_area = soup.findAll("div", {"class": "reviewer_area"}) if not only_score else [None for x in
+                                                                                                range(len(score))]
+        review_txt = soup.findAll("div", {"class": "review_txt"}) if not only_score else [None for x in
+                                                                                          range(len(score))]
         total = soup.find("span", {"class": "total"}) if page == 0 else None
 
         review_array = []
@@ -204,7 +212,8 @@ class NaverScraper:
             rating = float(k.text)
             if not only_score:
                 children = i.contents[0].contents if len(i.contents) < 2 else i.contents[1].contents
-                review_array.append({'name': children[0].text, 'date': children[1].text, 'rating': rating, 'text': j.text})
+                review_array.append(
+                    {'name': children[0].text, 'date': children[1].text, 'rating': rating, 'text': j.text})
             add_score += rating
             count += 1
         avg_score = str(round(add_score / count, 1)) if count > 0 else 0
@@ -224,7 +233,7 @@ class NaverScraper:
         html = response.text
 
         restaurants = []  # 분위기별 모든 식당이름을 저장 추후 id로 변경해야함
-        r_ids = [] # id만 모은 배열
+        r_ids = []  # id만 모은 배열
 
         start_str = 'window.PLACE_STATE=';
         end_str = '}</script>'
@@ -238,11 +247,11 @@ class NaverScraper:
                 for j in dict['businesses'][i]['items']:
                     if j is not None and 'businessCategory' in j and j['businessCategory'] == 'restaurant':
                         restaurants.append({
-                            "id" : j["id"],
-                            "name" : j["name"],
-                            "category" : j['category'],
-                            'lon' : j['x'], 'lat': j['y'],
-                            # 'rating' : review(j['id'], 0, True) # 추후 성능 개선 후 주석 해제
+                            "id": j["id"],
+                            "name": j["name"],
+                            "category": j['category'],
+                            'lon': j['x'], 'lat': j['y'],
+                            #'rating' : review(j['id'], 0, True) # 추후 성능 개선 후 주석 해제
                             # 평점을 tab_main에 있는 평점을 가져와도 될 것 같기도 함.
                         })
                         # r_ids.append(j['id'])

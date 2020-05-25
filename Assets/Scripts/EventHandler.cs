@@ -10,7 +10,7 @@ public class EventHandler : MonoBehaviour
     public object result = null;
     public bool isDone = false;
 
-    public enum HandlingType { Restaurants, DetailedRestaurant, MyInfo, Default, Menus, Photo, Reviews }
+    public enum HandlingType { Restaurants, DetailedRestaurant, MyInfo, Default, Menus, Photo, Reviews, Route }
     private IEnumerator target;
     private Queue<(MonoBehaviour owner, IEnumerator target, HandlingType type)> events = new Queue<(MonoBehaviour, IEnumerator, HandlingType)>();
 
@@ -98,6 +98,23 @@ public class EventHandler : MonoBehaviour
                                 urls.Add(i.ToString());
                             }
                             result = urls;
+                        }
+                        else if (dict.Contains("code"))
+                        {
+                            // 실패된 경우
+                            result = jsonResult;
+                        }
+                        break;
+                    case HandlingType.Route:
+                        if (dict.Contains("features"))
+                        {
+                            // 정상처리된 경우
+                            List<WayPoint> points = new List<WayPoint>();
+                            foreach (JsonData i in jsonResult["features"])
+                            {
+                                points.Add(new WayPoint(i["lon"].ToString(), i["lat"].ToString()));
+                            }
+                            result = points;
                         }
                         else if (dict.Contains("code"))
                         {

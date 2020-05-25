@@ -51,25 +51,27 @@ public class LoadingSceneTester : MonoBehaviour
     {
         Dictionary<string, string> dic = new Dictionary<string, string>();
 
-        dic.Add("url", "restaurant/1476730341/reviews");
+        dic.Add("url", "routes/ped");
+        dic.Add("startX", "128.422101");
+        dic.Add("startY", "36.138313");
+        dic.Add("endX", "128.418121");
+        dic.Add("endY", "36.137834");
         dic.Add("method", "GET");
 
-        eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Reviews);
+        eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Route);
 
         while (!flagWakeUp)
             yield return new WaitForSeconds(1.0f);
 
         if (eventHandler.result != null)
         {
-            if (eventHandler.result is ReviewTabResult)
+            if (eventHandler.result is List<WayPoint>)
             {
-                ReviewTabResult jsonResult = (ReviewTabResult)(eventHandler.result);
-                Debug.Log("AA -> " + jsonResult.reviewList);
-                foreach (Review i in jsonResult.reviewList)
+                List<WayPoint> jsonResult = eventHandler.result as List<WayPoint>;
+                foreach (WayPoint i in jsonResult)
                 {
-                    Debug.Log("" + i.name);
-                    Debug.Log("" + i.rating);
-                    Debug.Log("" + i.text);
+                    Debug.Log("" + i.lat);
+                    Debug.Log("" + i.lon);
                 }
             }
             else

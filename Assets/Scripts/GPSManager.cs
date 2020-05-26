@@ -11,6 +11,8 @@ public class GPSManager : MonoBehaviour
     public float heading;
     public float headingAccuracy;
 
+    public Vector3 headingVector;
+
     public bool isReady = false;
 
     [HideInInspector]
@@ -82,11 +84,13 @@ public class GPSManager : MonoBehaviour
             latitude = Input.location.lastData.latitude;
             longitude = Input.location.lastData.longitude;
 
-            heading = -Input.compass.trueHeading;
+            heading = -Input.compass.magneticHeading;
             headingAccuracy = Input.compass.headingAccuracy;
             ServiceStatus = Input.location.status;
 
-            Debug.Log(string.Format("Lat: {0} Long: {1} Heading: {2} HeadingAccuracy : {3}", latitude, longitude, heading, headingAccuracy));
+            headingVector = Input.compass.rawVector;
+
+            Debug.Log(string.Format("Lat: {0} Long: {1} Heading: {2} HeadingAccuracy : {3} HeadingVector3 : {4}" , latitude, longitude, heading, headingAccuracy, headingVector));
             if (!isReady) isReady = true;
         }
         else

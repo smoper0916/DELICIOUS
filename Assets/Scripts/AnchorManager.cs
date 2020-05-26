@@ -30,6 +30,8 @@ public class AnchorManager : MonoBehaviour
 
     public GameObject canvas;
     public GameObject loadingBar;
+
+   float heading;
     private void Start()
     {
         StartCoroutine(loadRestaurants());
@@ -107,12 +109,12 @@ public class AnchorManager : MonoBehaviour
         // Conversion factors
         float degreesLatitudeInMeters = 111132;
         degreesLongitudeInMetersAtEquator = 111319.9f;
-
+        
         //Real GPS Position - This will be the world origin.
-        //var gpsLat = 36.1377368f;
-        //var gpsLon = 128.4195133f;
-        var gpsLat = GPSManager.Instance.latitude;
-        var gpsLon = GPSManager.Instance.longitude;
+        var gpsLat = 36.138047f;
+        var gpsLon = 128.4190281f;
+        //var gpsLat = GPSManager.Instance.latitude;
+        //var gpsLon = GPSManager.Instance.longitude;
 
         dic.Add("url", "restaurants/near");
         dic.Add("method", "GET");
@@ -139,7 +141,9 @@ public class AnchorManager : MonoBehaviour
 
             Debug.Log(GPSManager.Instance.heading);
 
-            vector3 = Quaternion.AngleAxis(-GPSManager.Instance.heading, Vector3.up) * vector3;
+            heading = Quaternion.LookRotation(Camera.main.transform.TransformDirection(GPSManager.Instance.headingVector)).eulerAngles.y;
+
+            vector3 = Quaternion.AngleAxis(heading, Vector3.up) * vector3;
 
             Debug.Log(vector3);
 

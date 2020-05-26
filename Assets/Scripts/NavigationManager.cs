@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class NavigationManager : MonoBehaviour
 {
+    public GameObject head;
+
     public EventHandler eventHandler;
     public ServerManager serverManager;
     List<WayPoint> wayPoints = new List<WayPoint>();
@@ -18,10 +20,11 @@ public class NavigationManager : MonoBehaviour
     float degreesLongitudeInMetersAtEquator;
     private bool flagWakeUp = false;
     private bool flagCreate = false;
+    private bool isFirst = true;
 
     int index = 0;
     float speed = 5.0f;
-
+    float delta = 0;
     float heading;
 
     //public GameObject canvas;
@@ -34,8 +37,9 @@ public class NavigationManager : MonoBehaviour
     void Update()
     {
         if (flagWakeUp)
-        { 
-            var curPos = NavPrefab.transform.position;
+        {
+            
+            var curPos = (isFirst ? new Vector3(0, -1, 0) : NavPrefab.transform.position);
 
             NavPrefab = Instantiate(NavPrefab, curPos, NavPrefab.transform.rotation, transform);
 
@@ -54,22 +58,23 @@ public class NavigationManager : MonoBehaviour
                 
                 Debug.Log(NavPrefab.transform.position);
             }
-
+            if (isFirst)
+                isFirst = false;
             //for (int i = 0; i < vectors.Count; i++)
             //{
             //    Pose pose = new Pose(vectors[i], transform.rotation);
 
-            //    poses.Add(pose);
+                //    poses.Add(pose);
 
-            //    anchors.Add(Session.CreateAnchor(pose));
+                //    anchors.Add(Session.CreateAnchor(pose));
 
-            //    var gameObject = Instantiate(anchoredPrefab, anchors[i].transform.position, anchoredPrefab.transform.rotation, anchors[i].transform);
-            //    textMeshs = gameObject.GetComponentsInChildren<TextMesh>();
+                //    var gameObject = Instantiate(anchoredPrefab, anchors[i].transform.position, anchoredPrefab.transform.rotation, anchors[i].transform);
+                //    textMeshs = gameObject.GetComponentsInChildren<TextMesh>();
 
 
-            //    gameObject.transform.localScale = new Vector3(10, 7, 0);
-            //    // Debug.Log("Added : " + restaurants[i].name);
-            //}
+                //    gameObject.transform.localScale = new Vector3(10, 7, 0);
+                //    // Debug.Log("Added : " + restaurants[i].name);
+                //}
         }
     }
     private IEnumerator loadRestaurants()
@@ -89,24 +94,26 @@ public class NavigationManager : MonoBehaviour
         var gpsLat = GPSManager.Instance.latitude;
         var gpsLon = GPSManager.Instance.longitude;
 
-        vectors.Insert(0, new Vector3(0, -1, 0));
+        //vectors.Insert(0, new Vector3(0, -1, 0));
 
         dic.Add("url", "routes/ped");
         dic.Add("method", "GET");
         dic.Add("startX", gpsLon.ToString());
         dic.Add("startY", gpsLat.ToString());
-        dic.Add("endX", "128.397286");
-        dic.Add("endY", "36.137711");
+        dic.Add("endX", "128.394469");
+        dic.Add("endY", "36.142554");
 
         //IEnumerator sender = serverManager.SendRequest(dic);
         eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Route);
 
         while (!flagWakeUp)
-            yield return new WaitForSeconds(5.0f);
+            yield return new WaitForSeconds(1.0f);
 
+        
+        
 
         wayPoints = eventHandler.result as List<WayPoint>;
-
+        var MIN_CUBE_DIST = 1;
         // GPS position converted into unity coordinates
         foreach (WayPoint wayPoint in wayPoints)
         {
@@ -119,7 +126,7 @@ public class NavigationManager : MonoBehaviour
 
             heading = Quaternion.LookRotation(Camera.main.transform.TransformDirection(GPSManager.Instance.headingVector)).eulerAngles.y;
 
-            vector3 = Quaternion.AngleAxis(heading, Vector3.up) * vector3;
+            vector3 = Quaternion.AngleAxis(-Input.compass.trueHeading, Vector3.up) * vector3;
 
             Debug.Log(vector3);
 

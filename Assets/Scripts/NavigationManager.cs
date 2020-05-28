@@ -10,70 +10,67 @@ public class NavigationManager : MonoBehaviour
     public ServerManager serverManager;
     List<WayPoint> wayPoints = new List<WayPoint>();
     List<Vector3> vectors = new List<Vector3>();
-    List<GameObject> gameObjects = new List<GameObject>();
     Dictionary<string, string> dic = new Dictionary<string, string>();
+
     public GameObject NavPrefab;
+    public GameObject WayPrefab;
+    public GameObject Destination;
 
     public static GameObject target;
+    GameObject arrow;
+    GameObject wayPoint;
+
     float degreesLongitudeInMetersAtEquator;
     private bool flagWakeUp = false;
     private bool flagCreate = false;
 
-    int index = 0;
-    float speed = 5.0f;
-
     float heading;
+    int idx = 0;
+    bool checkWayPoint = false;
 
     //public GameObject canvas;
     //public GameObject loadingBar;
     private void Start()
     {
-        StartCoroutine(loadRestaurants());
+        StartCoroutine(loadWayPoints());
+        arrow = Instantiate(NavPrefab, new Vector3(0, Camera.main.transform.position.y, Camera.main.transform.position.z + 0.3f), NavPrefab.transform.rotation, Camera.main.transform);
     }
 
     void Update()
     {
         if (flagWakeUp)
-        { 
-            var curPos = NavPrefab.transform.position;
-
-            NavPrefab = Instantiate(NavPrefab, curPos, NavPrefab.transform.rotation, transform);
-
-            NavPrefab.transform.rotation = Looking(vectors[index], NavPrefab.transform.position);
-
-            if (index < vectors.Count)
+        {
+            if (checkWayPoint == false)
             {
-                float step = speed * Time.deltaTime;
-
-                NavPrefab.transform.position = Vector3.MoveTowards(curPos, vectors[index], step);
-
-                if (Vector3.Distance(curPos, vectors[index]) == 0f)
+                if (idx != vectors.Count)
                 {
-                    index++;
+                    Pose pose = new Pose(vectors[idx], Quaternion.identity);
+                    Anchor anchor = Session.CreateAnchor(pose);
+
+                    wayPoint = Instantiate(WayPrefab, anchor.transform.position, WayPrefab.transform.rotation, anchor.transform);
+                    wayPoint.transform.LookAt(vectors[idx + 1]);
+                    wayPoint.GetComponent<Collider>().tag = "wayPoint";
                 }
-                
-                Debug.Log(NavPrefab.transform.position);
+                else
+                {
+                    Pose pose = new Pose(vectors[idx], Quaternion.identity);
+                    Anchor anchor = Session.CreateAnchor(pose);
+
+                    wayPoint = Instantiate(Destination, anchor.transform.position, Destination.transform.rotation, anchor.transform);
+
+                    wayPoint.GetComponent<Collider>().tag = "destination";
+                }
+
+                checkWayPoint = true;
+
             }
-
-            //for (int i = 0; i < vectors.Count; i++)
-            //{
-            //    Pose pose = new Pose(vectors[i], transform.rotation);
-
-            //    poses.Add(pose);
-
-            //    anchors.Add(Session.CreateAnchor(pose));
-
-            //    var gameObject = Instantiate(anchoredPrefab, anchors[i].transform.position, anchoredPrefab.transform.rotation, anchors[i].transform);
-            //    textMeshs = gameObject.GetComponentsInChildren<TextMesh>();
-
-
-            //    gameObject.transform.localScale = new Vector3(10, 7, 0);
-            //    // Debug.Log("Added : " + restaurants[i].name);
-            //}
+            arrow.transform.LookAt(vectors[idx]);
         }
+
     }
-    private IEnumerator loadRestaurants()
+    private IEnumerator loadWayPoints()
     {
+
         while (!GPSManager.Instance.isReady)
         {
             yield return new WaitForSeconds(1.0f);
@@ -104,31 +101,26 @@ public class NavigationManager : MonoBehaviour
         while (!flagWakeUp)
             yield return new WaitForSeconds(5.0f);
 
-
         wayPoints = eventHandler.result as List<WayPoint>;
 
-        // GPS position converted into unity coordinates
+        Debug.Log(GPSManager.Instance.heading);
+
         foreach (WayPoint wayPoint in wayPoints)
         {
             var latOffset = (float.Parse(wayPoint.lat) - gpsLat) * degreesLatitudeInMeters;
             var lonOffset = (float.Parse(wayPoint.lon) - gpsLon) * GetLongitudeDegreeDistance(float.Parse(wayPoint.lat));
 
-            Vector3 vector3 = new Vector3(latOffset, -1, lonOffset);
+            Vector3 vector3 = new Vector3(latOffset, 0, lonOffset);
 
-            Debug.Log(GPSManager.Instance.heading);
+            //heading = Quaternion.LookRotation(Camera.main.transform.TransformDirection(GPSManager.Instance.headingVector)).eulerAngles.y;
 
-            heading = Quaternion.LookRotation(Camera.main.transform.TransformDirection(GPSManager.Instance.headingVector)).eulerAngles.y;
-
-            vector3 = Quaternion.AngleAxis(heading, Vector3.up) * vector3;
-
-            Debug.Log(vector3);
+            vector3 = Quaternion.AngleAxis(GPSManager.Instance.heading, Vector3.up) * vector3;
 
             vectors.Add(vector3);
-
         }
-        //loadingBar.SetActive(false);
-        //yield return new WaitUntil(() => flagWakeUp == true);
+
     }
+
     private float GetLongitudeDegreeDistance(float latitude)
     {
         return degreesLongitudeInMetersAtEquator * Mathf.Cos(latitude * (Mathf.PI / 180));
@@ -143,22 +135,34 @@ public class NavigationManager : MonoBehaviour
         Debug.Log("Wake Up!");
         flagWakeUp = true;
     }
-    //public IEnumerator waitForGPSReady()
-    //{
-    //    while (!GPSManager.Instance.isReady)
-    //    {
-    //        Debug.Log("Waiting...");
-    //        yield return new WaitForSeconds(1.0f);
-    //    }
-    //}
-    Quaternion Looking(Vector3 tartget, Vector3 current)
+    public IEnumerator waitForGPSReady()
     {
-        Quaternion lookAt = Quaternion.identity;
-        Vector3 lookAtVec = (tartget - current).normalized;
+        while (!GPSManager.Instance.isReady)
+        {
+            Debug.Log("Waiting...");
+            yield return new WaitForSeconds(1.0f);
+        }
+    }
 
-        lookAt.SetLookRotation(lookAtVec);
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("wayPoint"))
+        {
+            gameObject.SetActive(false);
 
-        return lookAt;
+            checkWayPoint = false;
+
+            idx++;
+        }
+        else if (other.CompareTag("destination"))
+        {
+            gameObject.SetActive(false);
+            arrow.SetActive(false);
+
+            //이력 등록
+
+
+        }
     }
 }
 

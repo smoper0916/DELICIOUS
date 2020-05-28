@@ -4041,6 +4041,7 @@ MonoBehaviour:
   longitude: 0
   heading: 0
   headingAccuracy: 0
+  headingVector: {x: 0, y: 0, z: 0}
   isReady: 0
   isRunning: 1
   ServiceStatus: 0

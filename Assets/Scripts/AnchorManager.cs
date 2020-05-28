@@ -35,43 +35,45 @@ public class AnchorManager : MonoBehaviour
     private void Start()
     {
         StartCoroutine(loadRestaurants());
+        Invoke("Draw",5);
+    }
+
+    void Draw()
+    {
+            for (int i = 0; i < vectors.Count; i++)
+            {
+                Pose pose = new Pose(vectors[i], transform.rotation);
+
+                poses.Add(pose);
+
+                anchors.Add(Session.CreateAnchor(pose));
+
+                var gameObject = Instantiate(anchoredPrefab, anchors[i].transform.position, anchoredPrefab.transform.rotation, anchors[i].transform);
+                gameObject.transform.rotation = Looking(gameObject.transform.position, transform.position);
+                textMeshs = gameObject.GetComponentsInChildren<TextMesh>();
+
+                textMeshs[0].text = restaurants[i].id;
+                textMeshs[1].text = restaurants[i].rating.ToString();
+                textMeshs[2].text = restaurants[i].name;
+                textMeshs[3].text = restaurants[i].brief;
+
+                gameObject.transform.localScale = new Vector3(10, 7, 0);
+                // Debug.Log("Added : " + restaurants[i].name);
+            }
+
+            foreach (Anchor anchor in anchors)
+            {
+                gameObjects.Add(gameObject);
+            }
+
+        if (Session.Status != SessionStatus.Tracking)
+        {
+            return;
+        }
     }
 
     void Update()
     {
-        if (flagCreate == false && Session.Status == SessionStatus.Tracking)
-        {
-            // Real world position of object. Need to update with something near your own location.
-            if (Input.touchCount > 0 && Input.touches[0].phase == TouchPhase.Began)
-            {
-                for (int i = 0; i < vectors.Count; i++)
-                {
-                    Pose pose = new Pose(vectors[i], transform.rotation);
-
-                    poses.Add(pose);
-
-                    anchors.Add(Session.CreateAnchor(pose));
-
-                    var gameObject = Instantiate(anchoredPrefab, anchors[i].transform.position, anchoredPrefab.transform.rotation, anchors[i].transform);
-                    gameObject.transform.rotation = Looking(gameObject.transform.position, transform.position);
-                    textMeshs = gameObject.GetComponentsInChildren<TextMesh>();
-
-                    textMeshs[0].text = restaurants[i].id;
-                    textMeshs[1].text = restaurants[i].rating.ToString();
-                    textMeshs[2].text = restaurants[i].name;
-                    textMeshs[3].text = restaurants[i].brief;
-
-                    gameObject.transform.localScale = new Vector3(10, 7, 0);
-                    // Debug.Log("Added : " + restaurants[i].name);
-                }
-
-                foreach (Anchor anchor in anchors)
-                {
-                    gameObjects.Add(gameObject);
-                }
-                flagCreate = true;
-            }
-        }
         if (Input.touchCount > 0 && flagCreate == true)
         {
             Vector2 pos = Input.GetTouch(0).position;
@@ -92,11 +94,6 @@ public class AnchorManager : MonoBehaviour
                 }
 
             }
-        }
-
-        if (Session.Status != SessionStatus.Tracking)
-        {
-            return;
         }
     }
     private IEnumerator loadRestaurants()
@@ -126,7 +123,7 @@ public class AnchorManager : MonoBehaviour
         eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Restaurants);
 
         while (!flagWakeUp)
-            yield return new WaitForSeconds(5.0f);
+            yield return new WaitForSeconds(1.0f);
 
 
         restaurants = eventHandler.result as List<Restaurant>;
@@ -164,7 +161,6 @@ public class AnchorManager : MonoBehaviour
     public void WakeUp()
     {
         Debug.Log("Wake Up!");
-        flagWakeUp = true;
     }
     Quaternion Looking(Vector3 tartget, Vector3 current)
     {

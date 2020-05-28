@@ -854,6 +854,10 @@ MonoBehaviour:
   serverManager: {fileID: 464532178}
   NavPrefab: {fileID: 8360087029549755653, guid: 4a396d1ab1667cb43896a9c1022fada0,
     type: 3}
+  WayPrefab: {fileID: 4285238942693590793, guid: 41285ecdab51d32458367ed4a6f6630e,
+    type: 3}
+  Destination: {fileID: 3266837328957122465, guid: f5dd61c1b6d72ea46ab0f48f5a5f9f05,
+    type: 3}
 --- !u!4 &1319317817
 Transform:
   m_ObjectHideFlags: 0
@@ -1355,6 +1359,8 @@ MonoBehaviour:
   serverManager: {fileID: 464532178}
   NavPrefab: {fileID: 7276993615420700255, guid: 2c2a353c376d8d54689d5aed60a03b60,
     type: 3}
+  WayPrefab: {fileID: 0}
+  Destination: {fileID: 0}
 --- !u!114 &2048298655
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1471,6 +1477,7 @@ MonoBehaviour:
   longitude: 0
   heading: 0
   headingAccuracy: 0
+  headingVector: {x: 0, y: 0, z: 0}
   isReady: 0
   isRunning: 1
   ServiceStatus: 0

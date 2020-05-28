@@ -31,41 +31,14 @@ public class UserManager : MonoBehaviour
 
     public GameObject historyData;
     public GameObject scrollView;
-    Text[] historyArr;
+    
     //Image navi;
 
-    int num = 0;
+    int num = 10;
     // Start is called before the first frame update
     void Start()
     {
-
-        ScrollRect scroll = scrollView.GetComponent<ScrollRect>();
-        historyArr = historyData.GetComponentsInChildren<Text>();
-        //navi = historyData.transform.Find("Image").GetComponent<Image>();
-        float f = 0;
-     
-        foreach(Text data in historyArr)
-        {
-            var Object = Instantiate(historyData, new Vector3(0, f, 0), Quaternion.identity, scroll.content);
-            num++;
-            data.text = num.ToString();
-             f -= 203.8f;
-        }
-
-        for(int i = 0;i<num;i++)
-        {
-            
-
-            historyArr[0].text = i.ToString();
-            historyArr[1].text = i.ToString();
-            historyArr[2].text = i.ToString();
-            historyArr[3].text = i.ToString();
-            historyArr[4].text = i.ToString();
-            //navi.sprite = Resources.Load("btnNavigating", typeof(Sprite)) as Sprite;
-
-            Debug.Log(historyArr);
-           
-        }
+        
 
         mailContent.text = Login.userId;
 
@@ -104,6 +77,41 @@ public class UserManager : MonoBehaviour
     {
 
         MyHistory.SetActive(true);
+
+        ScrollRect scroll = scrollView.GetComponent<ScrollRect>();
+        //navi = historyData.transform.Find("Image").GetComponent<Image>();
+        float f = 200;
+
+        //foreach (Text data in historyArr)
+        //{
+        //    var Object = Instantiate(historyData, new Vector3(0, f, 0), Quaternion.identity, scroll.content);
+        //    num++;
+        //    data.text = num.ToString();
+        //    historyArr[0].text = num.ToString();
+        //    historyArr[1].text = num.ToString();
+        //    historyArr[2].text = num.ToString();
+        //    historyArr[3].text = num.ToString();
+        //    historyArr[4].text = num.ToString();
+
+        //    f -= 203.8f;
+        //}
+
+        
+
+        for (int i = 0; i < num; i++)
+        {
+            var Object = Instantiate(historyData, new Vector3(0, f, 0), Quaternion.identity, scroll.content);
+
+            Text[] historyArr = Object.GetComponentsInChildren<Text>();
+
+            historyArr[0].text = i.ToString();
+            historyArr[1].text = "원할머니보쌈 동대구역 본점";
+            historyArr[2].text = "2020/05/28";
+            historyArr[3].text = "23:54";
+            historyArr[4].text = i.ToString();
+           
+            f -= 203.8f;
+        }
 
     }
 
@@ -208,6 +216,7 @@ public class UserManager : MonoBehaviour
     }
 
 
+    
     public void WakeUp()
     {
         flagWakeUp = true;

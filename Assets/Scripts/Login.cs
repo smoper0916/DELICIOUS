@@ -10,7 +10,7 @@ using System;
 public class Login : MonoBehaviour
 {
     TouchScreenKeyboard keyboard;
-
+    AndroidJavaObject kotlin;
 
     public Toggle autoLogin;
     public InputField IDfield;
@@ -33,6 +33,11 @@ public class Login : MonoBehaviour
     public EventHandler eventHandler;
     private ServerManager serverManager = new ServerManager();
     private bool flagWakeUp = false;
+
+    private void Awake()
+    {
+        kotlin = new AndroidJavaObject("com.DefaultCompany.TastyConcern.KakaoPlugin");
+    }
 
     public void Start()
     {
@@ -225,8 +230,8 @@ public class Login : MonoBehaviour
 
     public void kakaoLogin()
     {
-        //Application.OpenURL("https://kauth.kakao.com/oauth/authorize?client_id=6c33293e24aace367218848ba3e60573&redirect_uri=https://api2.jaehyeok.kr:80/deli/v1/oauth&response_type=code");
-    }
+        kotlin.Call("Login");
+     }
 
     public void WakeUp()
     {

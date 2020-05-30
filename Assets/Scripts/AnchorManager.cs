@@ -35,7 +35,6 @@ public class AnchorManager : MonoBehaviour
     private void Start()
     {
         StartCoroutine(loadRestaurants());
-        Invoke("Draw",5);
     }
 
     void Draw()
@@ -57,7 +56,7 @@ public class AnchorManager : MonoBehaviour
                 textMeshs[2].text = restaurants[i].name;
                 textMeshs[3].text = restaurants[i].brief;
 
-                gameObject.transform.localScale = new Vector3(10, 7, 0);
+                gameObject.transform.localScale = new Vector3(7, 4, 0);
                 // Debug.Log("Added : " + restaurants[i].name);
             }
 
@@ -106,10 +105,11 @@ public class AnchorManager : MonoBehaviour
         // Conversion factors
         float degreesLatitudeInMeters = 111132;
         degreesLongitudeInMetersAtEquator = 111319.9f;
-        
+
         //Real GPS Position - This will be the world origin.
-        var gpsLat = 36.138047f;
-        var gpsLon = 128.4190281f;
+        var gpsLat = 36.1380077f;
+        var gpsLon = 128.4166394f;
+
         //var gpsLat = GPSManager.Instance.latitude;
         //var gpsLon = GPSManager.Instance.longitude;
 
@@ -117,14 +117,13 @@ public class AnchorManager : MonoBehaviour
         dic.Add("method", "GET");
         dic.Add("lat", gpsLat.ToString());
         dic.Add("lon", gpsLon.ToString());
-        dic.Add("radius", "200");
+        dic.Add("radius", "1000");
 
         //IEnumerator sender = serverManager.SendRequest(dic);
         eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Restaurants);
 
         while (!flagWakeUp)
             yield return new WaitForSeconds(1.0f);
-
 
         restaurants = eventHandler.result as List<Restaurant>;
 
@@ -136,17 +135,33 @@ public class AnchorManager : MonoBehaviour
 
             Vector3 vector3 = new Vector3(latOffset, 0, lonOffset);
 
+            Debug.Log(vector3.magnitude);
+
             Debug.Log(GPSManager.Instance.heading);
 
-            heading = Quaternion.LookRotation(Camera.main.transform.TransformDirection(GPSManager.Instance.headingVector)).eulerAngles.y;
+            //heading = Quaternion.LookRotation(Camera.main.transform.TransformDirection(GPSManager.Instance.headingVector)).eulerAngles.y;
 
-            vector3 = Quaternion.AngleAxis(heading, Vector3.up) * vector3;
+            vector3 = Quaternion.AngleAxis(GPSManager.Instance.heading, Vector3.up) * vector3;
+
+            if (vector3.magnitude > 50.0f)
+            {
+                vector3 = new Vector3(latOffset, -5.0f, lonOffset);
+            }
+            else if (vector3.magnitude > 150.0f)
+            {
+                vector3 = new Vector3(latOffset, -1.0f, lonOffset);
+            }
+            else
+            {
+                vector3 = new Vector3(latOffset, 1.0f, lonOffset);
+            }
 
             Debug.Log(vector3);
 
             vectors.Add(vector3);
         }
         loadingBar.SetActive(false);
+        Draw();
         //yield return new WaitUntil(() => flagWakeUp == true);
     }
     private float GetLongitudeDegreeDistance(float latitude)
@@ -161,6 +176,7 @@ public class AnchorManager : MonoBehaviour
     public void WakeUp()
     {
         Debug.Log("Wake Up!");
+        flagWakeUp = true;
     }
     Quaternion Looking(Vector3 tartget, Vector3 current)
     {

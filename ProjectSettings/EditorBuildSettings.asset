@@ -17,10 +17,10 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/UserInfo.unity
     guid: b3cb05b0bb530674f9b19932431990ff
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/NaviTest.unity
     guid: 96fc6aa7c53254341ad2abb22b276155
   m_configObjects: {}

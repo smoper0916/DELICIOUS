@@ -33,18 +33,18 @@ public class NavigationManager : MonoBehaviour
     private void Start()
     {
         StartCoroutine(loadWayPoints());
-        arrow = Instantiate(NavPrefab, new Vector3(0, Camera.main.transform.position.y, Camera.main.transform.position.z + 0.3f), NavPrefab.transform.rotation, Camera.main.transform);
+        arrow = Instantiate(NavPrefab, new Vector3(0, Camera.main.transform.position.y - 0.2f, 0.5f), NavPrefab.transform.rotation, Camera.main.transform);
     }
 
     void Update()
     {
-        if (flagWakeUp)
+        if (flagCreate)
         {
             if (checkWayPoint == false)
             {
                 if (idx != vectors.Count)
                 {
-                    Pose pose = new Pose(vectors[idx], Quaternion.identity);
+                    Pose pose = new Pose(vectors[idx], transform.rotation);
                     Anchor anchor = Session.CreateAnchor(pose);
 
                     wayPoint = Instantiate(WayPrefab, anchor.transform.position, WayPrefab.transform.rotation, anchor.transform);
@@ -53,7 +53,7 @@ public class NavigationManager : MonoBehaviour
                 }
                 else
                 {
-                    Pose pose = new Pose(vectors[idx], Quaternion.identity);
+                    Pose pose = new Pose(vectors[idx], transform.rotation);
                     Anchor anchor = Session.CreateAnchor(pose);
 
                     wayPoint = Instantiate(Destination, anchor.transform.position, Destination.transform.rotation, anchor.transform);
@@ -63,8 +63,12 @@ public class NavigationManager : MonoBehaviour
 
                 checkWayPoint = true;
 
+                Debug.Log(wayPoint.transform.position);
+
+                //wayPoint.transform.localScale = new Vector3(7, 7, 0);
             }
             arrow.transform.LookAt(vectors[idx]);
+            arrow.transform.rotation = Quaternion.AngleAxis(90, Vector3.up);
         }
 
     }
@@ -81,12 +85,10 @@ public class NavigationManager : MonoBehaviour
         degreesLongitudeInMetersAtEquator = 111319.9f;
 
         //Real GPS Position - This will be the world origin.
-        //var gpsLat = 36.1377368f;
-        //var gpsLon = 128.4195133f;
-        var gpsLat = GPSManager.Instance.latitude;
-        var gpsLon = GPSManager.Instance.longitude;
-
-        vectors.Insert(0, new Vector3(0, -1, 0));
+        var gpsLat = 36.1377368f;
+        var gpsLon = 128.4195133f;
+        //var gpsLat = GPSManager.Instance.latitude;
+        //var gpsLon = GPSManager.Instance.longitude;
 
         dic.Add("url", "routes/ped");
         dic.Add("method", "GET");
@@ -99,9 +101,11 @@ public class NavigationManager : MonoBehaviour
         eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Route);
 
         while (!flagWakeUp)
-            yield return new WaitForSeconds(5.0f);
+            yield return new WaitForSeconds(2.0f);
 
         wayPoints = eventHandler.result as List<WayPoint>;
+
+        vectors.Add(new Vector3(0, -0.2f, 5.0f));
 
         Debug.Log(GPSManager.Instance.heading);
 
@@ -118,6 +122,7 @@ public class NavigationManager : MonoBehaviour
 
             vectors.Add(vector3);
         }
+        flagCreate = true;
 
     }
 
@@ -146,6 +151,7 @@ public class NavigationManager : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log("충돌충돌충돌충돌충돌충돌충돌충돌");
         if (other.CompareTag("wayPoint"))
         {
             gameObject.SetActive(false);
@@ -153,6 +159,7 @@ public class NavigationManager : MonoBehaviour
             checkWayPoint = false;
 
             idx++;
+
         }
         else if (other.CompareTag("destination"))
         {

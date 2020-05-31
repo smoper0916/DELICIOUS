@@ -37,10 +37,11 @@ public class EventHandler : MonoBehaviour
                         if (dict.Contains("restaurants"))
                         {
                             // 정상처리된 경우
-                            List<Restaurant> restaurants = new List<Restaurant>();
+                            Dictionary<string, Restaurant> restaurants = new Dictionary<string, Restaurant>();
+                            //List<Restaurant> restaurants = new List<Restaurant>();
                             foreach (JsonData i in jsonResult["restaurants"])
                             {
-                                restaurants.Add(new Restaurant(i));
+                                restaurants.Add(i["id"], new Restaurant(i));
                             }
                             result = restaurants;
                         }

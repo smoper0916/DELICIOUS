@@ -14,7 +14,7 @@ public class DetailedRestaurantManager : MonoBehaviour
     public Toggle reviewToggle;
     public Toggle photoToggle;
     public Toggle heartToggle;
-   
+
 
     public Text restaurantName;
     public Text score;
@@ -36,7 +36,7 @@ public class DetailedRestaurantManager : MonoBehaviour
     MenuTabResult menuTabResult = new MenuTabResult();
 
 
-  
+
     public GameObject canvas;
 
     string id;
@@ -44,12 +44,16 @@ public class DetailedRestaurantManager : MonoBehaviour
     private bool flagWakeUp = false;
     private bool flagSelect = false;
 
+    private bool menuCheck = false;
+    private bool reviewCheck = false;
+    private bool photoCheck = false;
+
     public static Dictionary<string, Restaurant> zzim = new Dictionary<string, Restaurant>();
     Dictionary<string, string> dic = new Dictionary<string, string>();
     // Start is called before the first frame update
     void Start()
     {
-     
+
     }
 
     private void Update()
@@ -62,7 +66,7 @@ public class DetailedRestaurantManager : MonoBehaviour
             id = textMeshs[0].text;
             restaurantName.text = textMeshs[2].text;
             score.text = textMeshs[1].text;
-            if(AnchorManager.restaurants[id].zzimCheck == false)
+            if (AnchorManager.restaurants[id].zzimCheck == false)
             {
                 heartToggle.isOn = false;
             }
@@ -115,10 +119,7 @@ public class DetailedRestaurantManager : MonoBehaviour
         while (!flagWakeUp)
             yield return new WaitForSeconds(1.0f);
 
-        menuScrollRect.SetActive(false);
-        photoScrollRect.SetActive(false);
-
-        reviewScrollRect.SetActive(true);
+       
 
         ReviewTabResult reviewTabResult = eventHandler.result as ReviewTabResult;
 
@@ -128,7 +129,7 @@ public class DetailedRestaurantManager : MonoBehaviour
 
         if (reviewTabResult.reviewList.Count == 0)
         {
-            var datas = Instantiate(ReviewData, new Vector3(0, y, 0), Quaternion.identity,scrollRect.content);
+            var datas = Instantiate(ReviewData, new Vector3(0, y, 0), Quaternion.identity, scrollRect.content);
             Text[] texts = datas.GetComponentsInChildren<Text>();
 
             texts[0].text = "";
@@ -166,7 +167,7 @@ public class DetailedRestaurantManager : MonoBehaviour
         float y = 0;
         for (int i = 0; i < urls.Count / 2 + 1; i++)
         {
-            var datas = Instantiate(PhotoData, new Vector3(0, y, 0), Quaternion.identity,scrollRect.content);
+            var datas = Instantiate(PhotoData, new Vector3(0, y, 0), Quaternion.identity, scrollRect.content);
             RawImage[] photos = scrollRect.content.GetComponentsInChildren<RawImage>();
 
             StartCoroutine(downloadPhoto(urls[i], photos[0]));
@@ -185,15 +186,51 @@ public class DetailedRestaurantManager : MonoBehaviour
     }
     public void selectMenuTap()
     {
-        StartCoroutine(loadMenu());
+        if (menuCheck == false && menuToggle.isOn)
+        {
+            StartCoroutine(loadMenu());
+            menuCheck = true;
+        }
+        else
+        {
+            reviewScrollRect.SetActive(false);
+            photoScrollRect.SetActive(false);
+
+            menuScrollRect.SetActive(true);
+        }
+
     }
     public void selectReviewTap()
     {
-        StartCoroutine(loadReviews());
+        if (reviewCheck == false && reviewToggle.isOn)
+        {
+            StartCoroutine(loadReviews());
+            reviewCheck = true;
+        }
+        else
+        {
+            menuScrollRect.SetActive(false);
+            photoScrollRect.SetActive(false);
+
+            reviewScrollRect.SetActive(true);
+        }
+
     }
     public void selectPhotoTap()
     {
-        StartCoroutine(loadPhoto());
+        if (photoCheck == false && photoToggle.isOn)
+        {
+            StartCoroutine(loadPhoto());
+            photoCheck = true;
+        }
+        else
+        {
+            menuScrollRect.SetActive(false);
+            reviewScrollRect.SetActive(false);
+
+            photoScrollRect.SetActive(true);
+        }
+
     }
 
     private IEnumerator downloadPhoto(string url, RawImage image)
@@ -223,20 +260,34 @@ public class DetailedRestaurantManager : MonoBehaviour
     }
     public void Exit()
     {
+        ScrollRect menuRect = menuScrollRect.GetComponent<ScrollRect>();
+        ScrollRect reviewRect = reviewScrollRect.GetComponent<ScrollRect>();
+        ScrollRect photoRect = photoScrollRect.GetComponent<ScrollRect>();
+
+        Text contents = menuRect.content.GetComponentInChildren<Text>();
+        RawImage[] photos = photoRect.content.GetComponentsInChildren<RawImage>();
+
+
+        contents.text = "";
+
+        for(int i = 0; i < reviewRect.content.childCount; i++)
+        {
+            Text[] texts = reviewRect.content.GetComponentsInChildren<Text>();
+
+            texts[i].text = "";
+
+        }
+       
+
         this.gameObject.SetActive(false);
         canvas.SetActive(true);
         //Destroy(this.gameObject);
     }
 
-    public void checkZzim()
-    {
-
-    }
-
     public void ClickHeart()
     {
-       
-        if(heartToggle.isOn)
+
+        if (heartToggle.isOn)
         {
             if (zzim.Count < 4)
             {
@@ -250,20 +301,20 @@ public class DetailedRestaurantManager : MonoBehaviour
                     heartToggle.isOn = false;
                     Debug.Log("찜목록은 최대 4개까지 가능");
                 }
-                
+
             }
         }
         else
         {
-            if(AnchorManager.restaurants[id].zzimCheck == true)
+            if (AnchorManager.restaurants[id].zzimCheck == true)
             {
                 AnchorManager.restaurants[id].zzimCheck = false;
                 zzim.Remove(id);
                 Debug.Log(id + "삭제");
             }
-           
+
         }
-       
+
     }
 
 }

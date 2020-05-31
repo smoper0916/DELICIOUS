@@ -28,10 +28,10 @@ def web_request(method_name, url, dict_data, is_urlencoded=True):
 # initial parameter
 # start_pos : Busan Fire Headquarter
 # end_pos : Yeonsan Library
-startX = "128.422101"
-startY = "36.138313"
-endX = "128.418121"
-endY = "36.137834"
+startX = "128.392563"
+startY = "36.145578"
+endX = "128.397286"
+endY = "36.137711"
 reqCoordType = "WGS84GEO"
 resCoordType = "WGS84GEO"
 startName = "금오공대 정문"
@@ -57,7 +57,6 @@ response = requests.request(method='POST', url=url, data=data)
 
 if response.status_code == 200:
 
-    print(type(response))
     json_data = response.json()
     #print(type(json_data))
     print(json.dumps(json_data, indent=4, ensure_ascii=False))

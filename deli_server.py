@@ -271,7 +271,6 @@ def get_route():
     })
 
     if response.status_code == 200:
-        print(type(response))
         json_data = response.json()
 
         point_arr = []
@@ -285,6 +284,45 @@ def get_route():
     else:
         return json.dumps({'code':'unexpected'}), 500, {'ContentType':'application/json'}
 
+### 식당 수정(grade)
+##@app.route(get_fullpath('/resturant/update'), method=["PUT"])
+##def update_resturant():
+    ## grade
+    
+# 찜 이력 조회
+@app.route(get_fullpath('/<usr_email>/history'), methods=['GET'])
+def list(usr_email):
+    query = "SELECT res.res_name, pup.pup_regdate, pup.pup_regtime, pup.pup_zzim " \
+            "FROM pickupres as pup, user as user, resturant as res " \
+            "WHERE pup.usr_code = user.usr_code and pup.res_code = res.res_code and user.usr_email = %s"
+    parameter = (usr_email,)
+    result = db_conn.execute_all(query, parameter)
+    print(type(result))
+
+    return jsonify({"zzim_list" : result})
+
+@app.route(get_fullpath('/<usr_email>/history'), methods=['PUT'])
+def update_list(usr_email):
+
+    param_json = json.loads(request.get_data().decode('ascii'))
+
+    for index in range(len(param_json['items'])):
+        res_name = param_json['items'][index]['name']
+        res_datetime = param_json['items'][index]['datetime']
+        res_visited = param_json['items'][index]['visited']
+        res_date = res_datetime[:8]
+        res_time = res_datetime[8:]
+
+    query = ""
+    parameter = (usr_email,)
+    result = db_conn.execute_all(query, parameter)
+    print(type(result))
+
+    return jsonify({"zzim_list" : result})
+
+
+
+
 
 '''
     limit remote addr : 
@@ -294,7 +332,6 @@ def get_route():
 def limit_remote_addr(): #IP주소로 들어오는 외국의 못된 친구들을 막기 위함
     if request.host == (host_info[0]+':'+host_info[1]):
         abort(403)  # Forbidden
-
 
 if __name__ == '__main__':
     app.config['JSON_AS_ASCII'] = False #한글을 깨지는거 방지(utf-8)

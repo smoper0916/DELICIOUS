@@ -5,9 +5,11 @@ from flask import json
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 
-from common_utils import GeoUtil
+#from common_utils import GeoUtil
+from common_utils import *
 import time
 from selenium import webdriver
+
 
 
 class NaverScraper:
@@ -242,23 +244,72 @@ class NaverScraper:
         dict = json.loads(parsing_source)
         review = self.scrape_review_score
 
+        # test용
+        #from common_utils import APIKeyLoader
+        host_info = APIKeyLoader.load('host_setting.dll')
+
+        if len(host_info) < 1:
+            print('Please Check your host info. It should be placed at ../host_setting.dll')
+        elif len(host_info) < 3:
+            print("There's no DB Setting in host setting file. Please Check file again. path = ../host_setting.dll")
+
+        import db_connector as db
+        object = db.DBConnector(host=host_info[2], user=host_info[3], password=host_info[4], db=host_info[5])
+        start_time = time.time()
+
         for i in dict['businesses'].keys():
             if i.startswith('[bounds:'):
                 for j in dict['businesses'][i]['items']:
                     if j is not None and 'businessCategory' in j and j['businessCategory'] == 'restaurant':
+                        # 중복체크 구문
+                        query = "SELECT big_category FROM category_definition WHERE category = %s"
+                        parameter = (j["category"], )
+                        number = object.execute_one(query, parameter)
+
+                        # 없는 카테고리인 경우 추가로 삽입한다.
+                        if number is None:
+                            query = "INSERT INTO category_definition (category, big_category) VALUES (%s, %s)"
+                            parameter = (j['category'], 0)
+                            object.execute(query, parameter)
+                            object.commit()
+
+
+                        res_code = j["id"]
+                        res_name = j["name"]
+                        res_category = j["category"]
+
+                        ## DB Insert
+                        query = "SELECT * FROM resturant as res WHERE res.res_code = %s"
+                        parameter = (j["id"],)
+                        result = object.execute_all(query, parameter)
+
+                        # 신규라면
+                        if len(result) == 0:
+                            query = "INSERT INTO resturant (res_code, res_name, res_category) VALUES (%s, %s, %s)"
+                            parameter = (res_code, res_name, str(number["big_category"] if number is not None else 0))
+                            print("%s %s %s" % (res_code, res_name, res_category))
+                            object.execute(query, parameter)
+                            object.commit()
+
                         restaurants.append({
                             "id": j["id"],
                             "name": j["name"],
                             "category": j['category'],
                             'lon': j['x'], 'lat': j['y'],
-                            #'rating' : review(j['id'], 0, True) # 추후 성능 개선 후 주석 해제
+                            # 'rating' : review(j['id'], 0, True) # 추후 성능 개선 후 주석 해제
                             # 평점을 tab_main에 있는 평점을 가져와도 될 것 같기도 함.
                         })
                         # r_ids.append(j['id'])
 
+
+
+
+        end_time = time.time()
+
+        print("adjust : %d seconds" % (end_time - start_time))
         # 평점 및 대표메뉴 조회
         # DB에 있는 식당만 결과 적용
-        start_time = time.time()
+        #start_time = time.time()
 
         # for id in r_ids:
         #     pass

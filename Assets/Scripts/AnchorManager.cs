@@ -32,6 +32,9 @@ public class AnchorManager : MonoBehaviour
     public GameObject canvas;
     public GameObject loadingBar;
 
+
+
+
     LoadingManager loadingManager;
 
     float heading;
@@ -212,4 +215,10 @@ public class AnchorManager : MonoBehaviour
             yield return new WaitForSeconds(1.0f);
         }
     }
+
+    public void ClickZzimBtn()
+    {
+        Debug.Log(DetailedRestaurantManager.zzim.Count);
+    }
+
 }

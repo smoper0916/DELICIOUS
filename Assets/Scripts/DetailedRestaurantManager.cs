@@ -13,6 +13,8 @@ public class DetailedRestaurantManager : MonoBehaviour
     public Toggle menuToggle;
     public Toggle reviewToggle;
     public Toggle photoToggle;
+    public Toggle heartToggle;
+   
 
     public Text restaurantName;
     public Text score;
@@ -26,11 +28,15 @@ public class DetailedRestaurantManager : MonoBehaviour
 
     public Button closeBtn;
 
+
+
     GameObject target;
     TextMesh[] textMeshs;
 
     MenuTabResult menuTabResult = new MenuTabResult();
 
+
+  
     public GameObject canvas;
 
     string id;
@@ -38,6 +44,7 @@ public class DetailedRestaurantManager : MonoBehaviour
     private bool flagWakeUp = false;
     private bool flagSelect = false;
 
+    public static Dictionary<string, Restaurant> zzim = new Dictionary<string, Restaurant>();
     Dictionary<string, string> dic = new Dictionary<string, string>();
     // Start is called before the first frame update
     void Start()
@@ -55,6 +62,14 @@ public class DetailedRestaurantManager : MonoBehaviour
             id = textMeshs[0].text;
             restaurantName.text = textMeshs[2].text;
             score.text = textMeshs[1].text;
+            if(AnchorManager.restaurants[id].zzimCheck == false)
+            {
+                heartToggle.isOn = false;
+            }
+            else
+            {
+                heartToggle.isOn = true;
+            }
 
             AnchorManager.showCheck = false;
         }
@@ -212,4 +227,43 @@ public class DetailedRestaurantManager : MonoBehaviour
         canvas.SetActive(true);
         //Destroy(this.gameObject);
     }
+
+    public void checkZzim()
+    {
+
+    }
+
+    public void ClickHeart()
+    {
+       
+        if(heartToggle.isOn)
+        {
+            if (zzim.Count < 4)
+            {
+                AnchorManager.restaurants[id].zzimCheck = true;
+                zzim[id] = AnchorManager.restaurants[id];
+            }
+            else
+            {
+                if (AnchorManager.restaurants[id].zzimCheck == false)
+                {
+                    heartToggle.isOn = false;
+                    Debug.Log("찜목록은 최대 4개까지 가능");
+                }
+                
+            }
+        }
+        else
+        {
+            if(AnchorManager.restaurants[id].zzimCheck == true)
+            {
+                AnchorManager.restaurants[id].zzimCheck = false;
+                zzim.Remove(id);
+                Debug.Log(id + "삭제");
+            }
+           
+        }
+       
+    }
+
 }

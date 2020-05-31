@@ -8,7 +8,7 @@ public class AnchorManager : MonoBehaviour
 {
     public EventHandler eventHandler;
     public ServerManager serverManager;
-    List<Restaurant> restaurants = new List<Restaurant>();
+    Dictionary<string, Restaurant> restaurants = new Dictionary<string, Restaurant>();
     List<Vector3> vectors = new List<Vector3>();
     List<Pose> poses = new List<Pose>();
     List<Anchor> anchors = new List<Anchor>();
@@ -36,37 +36,38 @@ public class AnchorManager : MonoBehaviour
     float heading;
     private void Start()
     {
+        loadingManager = loadingBar.transform.Find("vica").gameObject.GetComponent<LoadingManager>();
         StartCoroutine(loadRestaurants());
-        loadingManager = loadingBar.GetComponent<LoadingManager>();
     }
 
     void Draw()
     {
-            for (int i = 0; i < vectors.Count; i++)
-            {
-                Pose pose = new Pose(vectors[i], transform.rotation);
+        List<Restaurant> resList = new List<Restaurant>(restaurants.Values);
+        for (int i = 0; i < vectors.Count; i++)
+        {
+            Pose pose = new Pose(vectors[i], transform.rotation);
 
-                poses.Add(pose);
+            poses.Add(pose);
 
-                anchors.Add(Session.CreateAnchor(pose));
+            anchors.Add(Session.CreateAnchor(pose));
 
-                var gameObject = Instantiate(anchoredPrefab, anchors[i].transform.position, anchoredPrefab.transform.rotation, anchors[i].transform);
-                gameObject.transform.rotation = Looking(gameObject.transform.position, transform.position);
-                textMeshs = gameObject.GetComponentsInChildren<TextMesh>();
+            var gameObject = Instantiate(anchoredPrefab, anchors[i].transform.position, anchoredPrefab.transform.rotation, anchors[i].transform);
+            gameObject.transform.rotation = Looking(gameObject.transform.position, transform.position);
+            textMeshs = gameObject.GetComponentsInChildren<TextMesh>();
 
-                textMeshs[0].text = restaurants[i].id;
-                textMeshs[1].text = restaurants[i].rating.ToString();
-                textMeshs[2].text = restaurants[i].name;
-                textMeshs[3].text = restaurants[i].brief;
+            textMeshs[0].text = resList[i].id;
+            textMeshs[1].text = resList[i].rating.ToString();
+            textMeshs[2].text = resList[i].name;
+            textMeshs[3].text = resList[i].brief;
 
-                gameObject.transform.localScale = new Vector3(7, 4, 0);
-                // Debug.Log("Added : " + restaurants[i].name);
-            }
+            gameObject.transform.localScale = new Vector3(7, 4, 0);
+            // Debug.Log("Added : " + restaurants[i].name);
+        }
 
-            foreach (Anchor anchor in anchors)
-            {
-                gameObjects.Add(gameObject);
-            }
+        foreach (Anchor anchor in anchors)
+        {
+            gameObjects.Add(gameObject);
+        }
 
         if (Session.Status != SessionStatus.Tracking)
         {
@@ -100,8 +101,8 @@ public class AnchorManager : MonoBehaviour
     }
     private IEnumerator loadRestaurants()
     {
-        loadingManager.state = "GPS를 기다리는 중...";
-        loadingManager.step = 10f;
+        loadingManager.state = "GPS 신호 수신 중...";
+        loadingManager.step = 30f;
         loadingManager.ToggleUpdateFlag();
 
         while (!GPSManager.Instance.isReady)
@@ -110,7 +111,7 @@ public class AnchorManager : MonoBehaviour
         }
 
         loadingManager.state = "서버로부터 주변 식당 정보 받는 중...";
-        loadingManager.step = 40f;
+        loadingManager.step = 90f;
         loadingManager.ToggleUpdateFlag();
 
         // Conversion factors
@@ -136,15 +137,13 @@ public class AnchorManager : MonoBehaviour
         while (!flagWakeUp)
             yield return new WaitForSeconds(1.0f);
 
-        loadingManager.state = "AR 로딩 중...";
-        loadingManager.step = 90f;
-        loadingManager.ToggleUpdateFlag();
+        restaurants = eventHandler.result as Dictionary<string, Restaurant>;
 
-        restaurants = eventHandler.result as List<Restaurant>;
-
+        Debug.Log("Count : " + restaurants.Count);
         // GPS position converted into unity coordinates
-        foreach (Restaurant restaurant in restaurants)
+        foreach (string k in restaurants.Keys)
         {
+            Restaurant restaurant = restaurants[k];
             var latOffset = (restaurant.y - gpsLat) * degreesLatitudeInMeters;
             var lonOffset = (restaurant.x - gpsLon) * GetLongitudeDegreeDistance(restaurant.y);
 

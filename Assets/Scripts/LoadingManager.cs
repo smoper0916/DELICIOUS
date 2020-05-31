@@ -24,7 +24,7 @@ public class LoadingManager: MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (flagUpdateNeed && imageComp.fillAmount < step)
+        if (flagUpdateNeed && (imageComp.fillAmount * 100) < step)
         {
             imageComp.fillAmount = imageComp.fillAmount + Time.deltaTime * speed;
             text.text = (int)(imageComp.fillAmount * 100) + "%";

@@ -41,7 +41,7 @@ public class EventHandler : MonoBehaviour
                             //List<Restaurant> restaurants = new List<Restaurant>();
                             foreach (JsonData i in jsonResult["restaurants"])
                             {
-                                restaurants.Add(i["id"], new Restaurant(i));
+                                restaurants.Add(i["id"].ToString(), new Restaurant(i));
                             }
                             result = restaurants;
                         }

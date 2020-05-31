@@ -10,6 +10,7 @@ public class NavigationManager : MonoBehaviour
     public ServerManager serverManager;
     List<WayPoint> wayPoints = new List<WayPoint>();
     List<Vector3> vectors = new List<Vector3>();
+    List<Anchor> anchors = new List<Anchor>();
     Dictionary<string, string> dic = new Dictionary<string, string>();
 
     public GameObject NavPrefab;
@@ -33,42 +34,45 @@ public class NavigationManager : MonoBehaviour
     private void Start()
     {
         StartCoroutine(loadWayPoints());
-        arrow = Instantiate(NavPrefab, new Vector3(0, Camera.main.transform.position.y - 0.2f, 0.5f), NavPrefab.transform.rotation, Camera.main.transform);
+        
+        arrow = Instantiate(NavPrefab, new Vector3(0, Camera.main.transform.position.y - 0.25f, 0.5f), NavPrefab.transform.rotation, Camera.main.transform);
     }
 
     void Update()
     {
         if (flagCreate)
         {
-            if (checkWayPoint == false)
+            if (/*checkWayPoint == false ||*/ wayPoint == null)
             {
                 if (idx != vectors.Count)
                 {
-                    Pose pose = new Pose(vectors[idx], transform.rotation);
-                    Anchor anchor = Session.CreateAnchor(pose);
+                    //Pose pose = new Pose(vectors[idx], transform.rotation);
+                    //Anchor anchor = Session.CreateAnchor(pose);
 
-                    wayPoint = Instantiate(WayPrefab, anchor.transform.position, WayPrefab.transform.rotation, anchor.transform);
+                    wayPoint = Instantiate(WayPrefab, anchors[idx].transform.position, WayPrefab.transform.rotation, anchors[idx].transform);
                     wayPoint.transform.LookAt(vectors[idx + 1]);
-                    wayPoint.GetComponent<Collider>().tag = "wayPoint";
+
                 }
                 else
                 {
-                    Pose pose = new Pose(vectors[idx], transform.rotation);
-                    Anchor anchor = Session.CreateAnchor(pose);
+                    //Pose pose = new Pose(vectors[idx], transform.rotation);
+                    //Anchor anchor = Session.CreateAnchor(pose);
 
-                    wayPoint = Instantiate(Destination, anchor.transform.position, Destination.transform.rotation, anchor.transform);
+                    wayPoint = Instantiate(Destination, anchors[idx].transform.position, Destination.transform.rotation, anchors[idx].transform);
 
-                    wayPoint.GetComponent<Collider>().tag = "destination";
                 }
 
                 checkWayPoint = true;
-
-                Debug.Log(wayPoint.transform.position);
+                idx++;
+                Debug.Log(idx);
+                Debug.Log(wayPoint.gameObject.tag);
 
                 //wayPoint.transform.localScale = new Vector3(7, 7, 0);
             }
-            arrow.transform.LookAt(vectors[idx]);
-            arrow.transform.rotation = Quaternion.AngleAxis(90, Vector3.up);
+            arrow.transform.LookAt(wayPoint.transform.position);
+            //Debug.Log(arrow.transform.position);
+            //arrow.transform.rotation = Quaternion.AngleAxis(270, Vector3.up);
+            //arrow.transform.position = new Vector3(transform.parent.position.x, transform.parent.position.y - 0.2f, transform.parent.position.z + 0.5f);
         }
 
     }
@@ -105,7 +109,12 @@ public class NavigationManager : MonoBehaviour
 
         wayPoints = eventHandler.result as List<WayPoint>;
 
-        vectors.Add(new Vector3(0, -0.2f, 5.0f));
+        vectors.Add(new Vector3(0, -0.2f, 3.0f));
+
+        Pose poseTmp = new Pose(vectors[0], Quaternion.AngleAxis(GPSManager.Instance.heading, Vector3.up));
+        Anchor anchorTmp = Session.CreateAnchor(poseTmp);
+
+        anchors.Add(anchorTmp);
 
         Debug.Log(GPSManager.Instance.heading);
 
@@ -120,7 +129,15 @@ public class NavigationManager : MonoBehaviour
 
             vector3 = Quaternion.AngleAxis(GPSManager.Instance.heading, Vector3.up) * vector3;
 
+            Debug.Log(vector3);
+
             vectors.Add(vector3);
+
+            Pose pose = new Pose(vector3, Quaternion.AngleAxis(GPSManager.Instance.heading, Vector3.up));
+            Anchor anchor = Session.CreateAnchor(pose);
+
+            anchors.Add(anchor);
+
         }
         flagCreate = true;
 
@@ -146,29 +163,6 @@ public class NavigationManager : MonoBehaviour
         {
             Debug.Log("Waiting...");
             yield return new WaitForSeconds(1.0f);
-        }
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        Debug.Log("충돌충돌충돌충돌충돌충돌충돌충돌");
-        if (other.CompareTag("wayPoint"))
-        {
-            gameObject.SetActive(false);
-
-            checkWayPoint = false;
-
-            idx++;
-
-        }
-        else if (other.CompareTag("destination"))
-        {
-            gameObject.SetActive(false);
-            arrow.SetActive(false);
-
-            //이력 등록
-
-
         }
     }
 }

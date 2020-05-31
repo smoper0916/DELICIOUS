@@ -31,10 +31,13 @@ public class AnchorManager : MonoBehaviour
     public GameObject canvas;
     public GameObject loadingBar;
 
-   float heading;
+    LoadingManager loadingManager;
+
+    float heading;
     private void Start()
     {
         StartCoroutine(loadRestaurants());
+        loadingManager = loadingBar.GetComponent<LoadingManager>();
     }
 
     void Draw()
@@ -97,10 +100,18 @@ public class AnchorManager : MonoBehaviour
     }
     private IEnumerator loadRestaurants()
     {
+        loadingManager.state = "GPS를 기다리는 중...";
+        loadingManager.step = 10f;
+        loadingManager.ToggleUpdateFlag();
+
         while (!GPSManager.Instance.isReady)
         {
             yield return new WaitForSeconds(1.0f);
         }
+
+        loadingManager.state = "서버로부터 주변 식당 정보 받는 중...";
+        loadingManager.step = 40f;
+        loadingManager.ToggleUpdateFlag();
 
         // Conversion factors
         float degreesLatitudeInMeters = 111132;
@@ -124,6 +135,10 @@ public class AnchorManager : MonoBehaviour
 
         while (!flagWakeUp)
             yield return new WaitForSeconds(1.0f);
+
+        loadingManager.state = "AR 로딩 중...";
+        loadingManager.step = 90f;
+        loadingManager.ToggleUpdateFlag();
 
         restaurants = eventHandler.result as List<Restaurant>;
 

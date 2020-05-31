@@ -72,7 +72,7 @@ public class GPSManager : MonoBehaviour
         //Loop forever to get GPS updates
         while (isRunning)
         {
-            yield return new WaitForSeconds(2);
+            yield return new WaitForSeconds(0.1f);
             UpdateGPS();
         }
     }
@@ -90,7 +90,7 @@ public class GPSManager : MonoBehaviour
 
             headingVector = Input.compass.rawVector;
 
-            Debug.Log(string.Format("Lat: {0} Long: {1} Heading: {2} HeadingAccuracy : {3} HeadingVector3 : {4}" , latitude, longitude, heading, headingAccuracy, headingVector));
+            //Debug.Log(string.Format("Lat: {0} Long: {1} Heading: {2} HeadingAccuracy : {3} HeadingVector3 : {4}" , latitude, longitude, heading, headingAccuracy, headingVector));
             if (!isReady) isReady = true;
         }
         else

@@ -8,7 +8,7 @@ public class AnchorManager : MonoBehaviour
 {
     public EventHandler eventHandler;
     public ServerManager serverManager;
-    Dictionary<string, Restaurant> restaurants = new Dictionary<string, Restaurant>();
+    static public Dictionary<string, Restaurant> restaurants = new Dictionary<string, Restaurant>();
     List<Vector3> vectors = new List<Vector3>();
     List<Pose> poses = new List<Pose>();
     List<Anchor> anchors = new List<Anchor>();
@@ -22,6 +22,7 @@ public class AnchorManager : MonoBehaviour
     Quaternion lastAnchoredRotation;
 
     public static GameObject target;
+    public static bool showCheck = false;
     public GameObject detailedRestaurantManager;
 
     float degreesLongitudeInMetersAtEquator;
@@ -77,7 +78,7 @@ public class AnchorManager : MonoBehaviour
 
     void Update()
     {
-        if (Input.touchCount > 0 && flagCreate == true)
+        if (Input.touchCount > 0)
         {
             Vector2 pos = Input.GetTouch(0).position;
             Vector3 theTouch = new Vector3(pos.x, pos.y, 0.0f);    // 변환 안하고 바로 Vector3로 받아도 되겠지.
@@ -92,7 +93,9 @@ public class AnchorManager : MonoBehaviour
 
                 {
                     target = hit.collider.gameObject;
+                    Debug.Log(target.transform.position);
                     detailedRestaurantManager.SetActive(true);
+                    showCheck = true;
                     canvas.SetActive(false);
                 }
 
@@ -157,24 +160,24 @@ public class AnchorManager : MonoBehaviour
 
             vector3 = Quaternion.AngleAxis(GPSManager.Instance.heading, Vector3.up) * vector3;
 
-            if (vector3.magnitude > 50.0f)
-            {
-                vector3 = new Vector3(latOffset, -5.0f, lonOffset);
-            }
-            else if (vector3.magnitude > 150.0f)
-            {
-                vector3 = new Vector3(latOffset, -1.0f, lonOffset);
-            }
-            else
-            {
-                vector3 = new Vector3(latOffset, 1.0f, lonOffset);
-            }
+            //if (vector3.magnitude > 50.0f)
+            //{
+            //    vector3 = new Vector3(latOffset, -5.0f, lonOffset);
+            //}
+            //else if (vector3.magnitude > 150.0f)
+            //{
+            //    vector3 = new Vector3(latOffset, -1.0f, lonOffset);
+            //}
+            //else
+            //{
+            //    vector3 = new Vector3(latOffset, 1.0f, lonOffset);
+            //}
 
             Debug.Log(vector3);
 
             vectors.Add(vector3);
         }
-        loadingBar.SetActive(false);
+        Destroy(loadingBar.gameObject);
         Draw();
         //yield return new WaitUntil(() => flagWakeUp == true);
     }

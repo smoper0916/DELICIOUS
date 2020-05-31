@@ -24,12 +24,14 @@ public class DetailedRestaurantManager : MonoBehaviour
     public GameObject ReviewData;
     public GameObject PhotoData;
 
-    public Button btn;
+    public Button closeBtn;
 
     GameObject target;
     TextMesh[] textMeshs;
 
     MenuTabResult menuTabResult = new MenuTabResult();
+
+    public GameObject canvas;
 
     string id;
     string txt;
@@ -40,12 +42,22 @@ public class DetailedRestaurantManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        txt = "";
-        this.target = AnchorManager.target;
-        textMeshs = target.GetComponentsInChildren<TextMesh>();
-        id = textMeshs[0].text;
-        restaurantName.text = textMeshs[2].text;
-        score.text = textMeshs[1].text;
+     
+    }
+
+    private void Update()
+    {
+        if (AnchorManager.showCheck)
+        {
+            txt = "";
+            this.target = AnchorManager.target;
+            textMeshs = target.GetComponentsInChildren<TextMesh>();
+            id = textMeshs[0].text;
+            restaurantName.text = textMeshs[2].text;
+            score.text = textMeshs[1].text;
+
+            AnchorManager.showCheck = false;
+        }
     }
 
     private IEnumerator loadMenu()
@@ -196,6 +208,8 @@ public class DetailedRestaurantManager : MonoBehaviour
     }
     public void Exit()
     {
-        
+        this.gameObject.SetActive(false);
+        canvas.SetActive(true);
+        //Destroy(this.gameObject);
     }
 }

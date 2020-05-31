@@ -288,7 +288,7 @@ def get_route():
 ##@app.route(get_fullpath('/resturant/update'), method=["PUT"])
 ##def update_resturant():
     ## grade
-    
+
 # 찜 이력 조회
 @app.route(get_fullpath('/<usr_email>/history'), methods=['GET'])
 def list(usr_email):

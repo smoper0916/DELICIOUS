@@ -10,6 +10,17 @@ from common_utils import *
 import time
 from selenium import webdriver
 
+host_info = APIKeyLoader.load('host_setting.dll')
+
+if len(host_info) < 1:
+    print('Please Check your host info. It should be placed at ../host_setting.dll')
+elif len(host_info) < 3:
+    print("There's no DB Setting in host setting file. Please Check file again. path = ../host_setting.dll")
+
+import db_connector as db
+
+object = db.DBConnector(host=host_info[2], user=host_info[3], password=host_info[4], db=host_info[5])
+
 
 
 class NaverScraper:
@@ -126,7 +137,6 @@ class NaverScraper:
         response_time = time.time()
 
         html = response.text
-
         soup = BeautifulSoup(html, 'html.parser')
 
         soup_time = time.time()
@@ -192,6 +202,7 @@ class NaverScraper:
             if i.get("src").find("type=m862_636") != -1:
                 yield i.get("src").replace("&type=m862_636", "")
 
+
     # 리뷰, 평점 가져오는부분
     def scrape_review_score(self, id, page, only_score=False):
         add_score = 0;
@@ -246,7 +257,7 @@ class NaverScraper:
 
         # test용
         #from common_utils import APIKeyLoader
-        host_info = APIKeyLoader.load('host_setting.dll')
+        """host_info = APIKeyLoader.load('host_setting.dll')
 
         if len(host_info) < 1:
             print('Please Check your host info. It should be placed at ../host_setting.dll')
@@ -254,7 +265,7 @@ class NaverScraper:
             print("There's no DB Setting in host setting file. Please Check file again. path = ../host_setting.dll")
 
         import db_connector as db
-        object = db.DBConnector(host=host_info[2], user=host_info[3], password=host_info[4], db=host_info[5])
+        object = db.DBConnector(host=host_info[2], user=host_info[3], password=host_info[4], db=host_info[5])"""
         start_time = time.time()
 
         for i in dict['businesses'].keys():
@@ -272,7 +283,6 @@ class NaverScraper:
                             parameter = (j['category'], 0)
                             object.execute(query, parameter)
                             object.commit()
-
 
                         res_code = j["id"]
                         res_name = j["name"]
@@ -307,6 +317,166 @@ class NaverScraper:
         end_time = time.time()
 
         print("adjust : %d seconds" % (end_time - start_time))
+        # 평점 및 대표메뉴 조회
+        # DB에 있는 식당만 결과 적용
+        #start_time = time.time()
+
+        # for id in r_ids:
+        #     pass
+        # pool = multiprocessing.Pool()
+        # pool.map(self.scrape_menu, r_ids)
+        # with multiprocessing.Pool() as p:
+        #     brief_things = p.map(scrape_alone, r_ids)
+        return restaurants
+
+
+    def get_point(self, num):
+        _sum = 0.0
+        tab_page_num = 0
+        end_point = 0
+        total_num = 0
+        while True:
+            if end_point is not 0 and tab_page_num is end_point:
+                score = _sum / total_num
+                break
+            response = requests.get("https://store.naver.com/restaurants/detail?entry=plt&id=%s&tab=receiptReview&tabPage=%s" % (str(num), str(tab_page_num)))
+            html = response.text
+            soup = BeautifulSoup(html, 'html.parser')
+            if tab_page_num is 0:
+                total_num = soup.select('h3 > span.count')
+            ## 오류 체크
+
+            if total_num is 0 or (type(total_num) is not int and len(total_num) is 0):
+                score = "없음"
+                break
+            else:
+                if end_point is 0:
+                    import re
+                    total_num = int(re.findall("\d+", str(total_num))[0])
+
+                    # 한페이지당 최대 10개 댓글
+                    MAX_PAGE_COMMENT = 10
+                    end_point = (total_num // MAX_PAGE_COMMENT) \
+                        if (total_num / MAX_PAGE_COMMENT * MAX_PAGE_COMMENT) is total_num \
+                        else (total_num // MAX_PAGE_COMMENT) + 1
+
+                result = soup.find_all("span", class_=['score'])
+                for row in result:
+                    row_score = int(re.findall("\d+", str(row))[0])
+                    _sum += row_score
+                #print(result)
+                tab_page_num += 1
+
+        return score
+
+    def get_menu(self, num):
+        response = requests.get("https://store.naver.com/restaurants/detail?entry=plt&id=%s&tab=receiptReview&tabPage=0" % str(num))
+        html = response.text
+        soup = BeautifulSoup(html, 'html.parser')
+        result = soup.select('div.menu > span.name')
+
+        import re
+        if len(result) is 0:
+            return "없음"
+        else:
+            return_arr = []
+            for row in result:
+                if len(return_arr) > 0:
+                    break
+                row = re.sub('<.+?>', '', str(row), 0, re.I|re.S)
+                return_arr.append(row)
+            return return_arr
+
+    def thread_func(self, num):
+        print(num)
+        point = self.get_point(num)
+        menu = self.get_menu(num)
+        print("점수 : %s, 대표메뉴 : %s" % (point, menu))
+        ## update -> commit
+        query = "UPDATE resturant SET res_grade = %s, res_menu = %s where res_code = %s"
+        parameter = (point, menu, num)
+        object.execute(query, parameter)
+        object.commit()
+        time.sleep(1)
+
+    def process_thread(self, arr):
+        import concurrent.futures as cf
+        executor = cf.ThreadPoolExecutor(max_workers=len(arr))
+        for i in range(len(arr)):
+            executor.submit(self.thread_func(arr[i]))
+
+
+    def scrape_place2(self, lon, lat, radius):
+        bounds_arr = GeoUtil.get_bounds(lon, lat, radius)
+        url = "https://store.naver.com/restaurants/list?bounds=" + str(bounds_arr[0]) + "%3B" + str(
+            bounds_arr[1]) + "%3B" + str(bounds_arr[2]) + "%3B" + str(bounds_arr[3]) + "&query=%EB%A7%9B%EC%A7%91"
+        #print(url)
+        response = requests.get(url)
+        html = response.text
+
+        restaurants = []  # 분위기별 모든 식당이름을 저장 추후 id로 변경해야함
+        r_ids = []  # id만 모은 배열
+
+        start_str = 'window.PLACE_STATE=';
+        end_str = '}</script>'
+        parsing_source = html[html.find(start_str) + len(start_str):html.find(end_str) + 1]
+
+        dict = json.loads(parsing_source)
+        review = self.scrape_review_score
+
+        # test용
+        #from common_utils import APIKeyLoader
+        start_time = time.time()
+        find_arr = []
+        for i in dict['businesses'].keys():
+            if i.startswith('[bounds:'):
+                for j in dict['businesses'][i]['items']:
+                    if j is not None and 'businessCategory' in j and j['businessCategory'] == 'restaurant':
+                        # 중복체크 구문
+                        query = "SELECT big_category FROM category_definition WHERE category = %s"
+                        parameter = (j["category"], )
+                        number = object.execute_one(query, parameter)
+
+                        # 없는 카테고리인 경우 추가로 삽입한다.
+                        if number is None:
+                            query = "INSERT INTO category_definition (category, big_category) VALUES (%s, %s)"
+                            parameter = (j['category'], 0)
+                            object.execute(query, parameter)
+                            object.commit()
+
+                        res_code = j["id"]
+                        res_name = j["name"]
+                        res_category = j["category"]
+
+                        ## DB Insert
+                        query = "SELECT * FROM resturant as res WHERE res.res_code = %s"
+                        parameter = (j["id"],)
+                        result = object.execute_all(query, parameter)
+                        #print(res_name)
+                        # 신규라면
+                        if len(result) == 0:
+                            query = "INSERT INTO resturant (res_code, res_name, res_category) VALUES (%s, %s, %s)"
+                            parameter = (res_code, res_name, str(number["big_category"] if number is not None else 0))
+                            #print("%s %s %s" % (res_code, res_name, res_category))
+                            object.execute(query, parameter)
+                            object.commit()
+                            ########################### multithread
+                            find_arr.append(j["id"])
+
+                        restaurants.append({
+                            "id": j["id"],
+                            "name": j["name"],
+                            "category": j['category'],
+                            'lon': j['x'], 'lat': j['y'],
+                            # 'rating' : review(j['id'], 0, True) # 추후 성능 개선 후 주석 해제
+                            # 평점을 tab_main에 있는 평점을 가져와도 될 것 같기도 함.
+                        })
+                        # r_ids.append(j['id'])
+        end_time = time.time()
+
+        print("adjust : %d seconds" % (end_time - start_time))
+
+        self.process_thread(find_arr)
         # 평점 및 대표메뉴 조회
         # DB에 있는 식당만 결과 적용
         #start_time = time.time()

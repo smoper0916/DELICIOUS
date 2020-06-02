@@ -11,6 +11,7 @@ public class Login : MonoBehaviour
 {
     TouchScreenKeyboard keyboard;
     AndroidJavaObject kotlin;
+    AndroidJavaObject kotlin2;
 
     public Toggle autoLogin;
     public InputField IDfield;
@@ -36,14 +37,14 @@ public class Login : MonoBehaviour
 
     private void Awake()
     {
-        kotlin = new AndroidJavaObject("com.DefaultCompany.TastyConcern.KakaoPlugin");
+        kotlin = new AndroidJavaObject("com.delicious.ohtasty.KakaoPlugin");
     }
 
     public void Start()
     {
         Debug.Log(PlayerPrefs.GetString("PW"));
         //자동로그인이 체크되어있는경우
-        if(auto.isOn)
+        if(auto != null && auto.isOn)
         {   //로컬에서 id값이 존재하면
             
             if(PlayerPrefs.HasKey("ID"))
@@ -70,6 +71,8 @@ public class Login : MonoBehaviour
         //LoginFailed = GameObject.Find("failed");
 
         LoginFailed.SetActive(false);
+
+        Debug.Log("[[[[[[[[[[[[ : "+kotlin.Get<string>("tt"));
     }
 
     public void getUserInfo()
@@ -228,10 +231,26 @@ public class Login : MonoBehaviour
         LoginFailed.SetActive(false);
     }
 
-    public void kakaoLogin()
+    public void KakaoLogin()
     {
-        kotlin.Call("Login");
-     }
+        try
+        {
+            //kotlin.Call("Login");
+            string key = kotlin.Call<string>("Login");
+            Debug.Log("로그인 지남.");
+            Debug.Log("Key : ==================" + key);
+        }
+        catch(Exception e)
+        {
+            Debug.LogError(e.ToString());
+        }
+        
+    }
+
+    public void GetKakaoInfo()
+    {
+        kotlin.Call("GetMe");
+    }
 
     public void WakeUp()
     {

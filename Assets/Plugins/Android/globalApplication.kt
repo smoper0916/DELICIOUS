@@ -1,9 +1,9 @@
-package com.defaultcompany.uplugin
+package com.delicious.ohtasty
 
 import android.app.Application
 import com.kakao.auth.*
 
-class globalApplication : Application() {
+class GlobalApplication : Application() {
     class KakaoSdkAdapter : KakaoAdapter(){
 
         override fun getSessionConfig(): ISessionConfig {
@@ -30,11 +30,9 @@ class globalApplication : Application() {
             }
         }
 
-
         override fun getApplicationConfig(): IApplicationConfig {
             return IApplicationConfig { globalApplicationContext }
         }
-
     }
 
     override fun onCreate() {
@@ -44,11 +42,12 @@ class globalApplication : Application() {
     }
 
     companion object{
-        private var instance: globalApplication? = null
-        val globalApplicationContext:globalApplication
+        private var instance : GlobalApplication? = null
+        val globalApplicationContext:GlobalApplication
             get(){
                 if(instance == null)
                     throw IllegalStateException("wow")
+
                 return instance!!
             }
     }

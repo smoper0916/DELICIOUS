@@ -5,22 +5,18 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/LogIn.unity
     guid: af2309303a5425441840aad35d3c8037
   - enabled: 1
     path: Assets/Scenes/Main.unity
     guid: 4a815134ffd9654429c4b2bb9108a0d3
-  - enabled: 0
-    path: Assets/Scenes/RegisterUser.unity
-    guid: 3f51b5df467356d49ae694f20fb0a72e
-  - enabled: 0
-    path: Assets/Scenes/SampleScene.unity
-    guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/UserInfo.unity
     guid: b3cb05b0bb530674f9b19932431990ff
-  - enabled: 0
-    path: Assets/Scenes/NaviTest.unity
-    guid: 96fc6aa7c53254341ad2abb22b276155
-  m_configObjects: {}
+  - enabled: 1
+    path: Assets/Scenes/RegisterUser.unity
+    guid: 3f51b5df467356d49ae694f20fb0a72e
+  m_configObjects:
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: d8346a42677934c49ba906fbd80fd465,
+      type: 2}

@@ -329,7 +329,8 @@ class NaverScraper:
         #     brief_things = p.map(scrape_alone, r_ids)
         return restaurants
 
-
+    def func(self, arr):
+        print(arr)
     def get_point(self, num):
         _sum = 0.0
         tab_page_num = 0
@@ -346,8 +347,11 @@ class NaverScraper:
                 total_num = soup.select('h3 > span.count')
             ## 오류 체크
 
+            #print(total_num)
+
+
             if total_num is 0 or (type(total_num) is not int and len(total_num) is 0):
-                score = "없음"
+                score = 0
                 break
             else:
                 if end_point is 0:
@@ -373,28 +377,32 @@ class NaverScraper:
         response = requests.get("https://store.naver.com/restaurants/detail?entry=plt&id=%s&tab=receiptReview&tabPage=0" % str(num))
         html = response.text
         soup = BeautifulSoup(html, 'html.parser')
-        result = soup.select('div.menu > span.name')
-
+        result_name = soup.select('div.menu > span.name')
+        result_price = soup.select('div.list_menu_inner > em.price')
         import re
-        if len(result) is 0:
-            return "없음"
+        if len(result_name) is 0:
+            return ["없음", "없음"]
         else:
-            return_arr = []
-            for row in result:
+            name = re.sub('<.+?>', '', str(result_name[0]), 0, re.I|re.S)
+            price = re.sub('<.+?>', '', str(result_price[0]), 0, re.I|re.S)
+            return_arr = [name, price]
+
+            """for row in result_name:
                 if len(return_arr) > 0:
                     break
                 row = re.sub('<.+?>', '', str(row), 0, re.I|re.S)
-                return_arr.append(row)
+                return_arr.append(row, result_price[0])"""
             return return_arr
 
     def thread_func(self, num):
         print(num)
         point = self.get_point(num)
         menu = self.get_menu(num)
-        print("점수 : %s, 대표메뉴 : %s" % (point, menu))
+        print("점수 : %s, 대표메뉴 : %s, 메뉴가격 : %s" % (point, menu[0], menu[1]))
+
         ## update -> commit
-        query = "UPDATE resturant SET res_grade = %s, res_menu = %s where res_code = %s"
-        parameter = (point, menu, num)
+        query = "UPDATE resturant SET res_grade = %s, res_menu = %s, res_price = %s where res_code = %s"
+        parameter = (point, menu[0], menu[1], num)
         object.execute(query, parameter)
         object.commit()
         time.sleep(1)
@@ -452,7 +460,7 @@ class NaverScraper:
                         query = "SELECT * FROM resturant as res WHERE res.res_code = %s"
                         parameter = (j["id"],)
                         result = object.execute_all(query, parameter)
-                        #print(res_name)
+
                         # 신규라면
                         if len(result) == 0:
                             query = "INSERT INTO resturant (res_code, res_name, res_category) VALUES (%s, %s, %s)"
@@ -476,7 +484,15 @@ class NaverScraper:
 
         print("adjust : %d seconds" % (end_time - start_time))
 
-        self.process_thread(find_arr)
+
+        #self.func(find_arr)
+        print(find_arr)
+        if len(find_arr) > 0:
+            self.process_thread(find_arr)
+
+
+
+
         # 평점 및 대표메뉴 조회
         # DB에 있는 식당만 결과 적용
         #start_time = time.time()

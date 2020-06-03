@@ -28,8 +28,10 @@ public class Login : MonoBehaviour
     public static string sex;
 
 
-    public GameObject LoginPanel = null;
-    public GameObject LoginFailed = null;
+    public GameObject LoginPanel;
+    public GameObject LoginFailed;
+
+    public Text failedText;
 
     public EventHandler eventHandler;
     private ServerManager serverManager = new ServerManager();
@@ -56,7 +58,7 @@ public class Login : MonoBehaviour
                 //서버로 로그인 요청을 보내는 코드 작성
                 //response를 확인후 
 
-                getUserInfo();
+                GetUserInfo();
 
             }
         }
@@ -75,7 +77,7 @@ public class Login : MonoBehaviour
         Debug.Log("[[[[[[[[[[[[ : "+kotlin.Get<string>("tt"));
     }
 
-    public void getUserInfo()
+    public void GetUserInfo()
     {
         var pairs = new Dictionary<string, string>();
         pairs["url"] = userId + "/profile";
@@ -85,13 +87,13 @@ public class Login : MonoBehaviour
 
         Debug.Log(pairs["url"] + pairs["password"]);
 
-        IEnumerator enumerator = handleUserInfo(pairs);
+        IEnumerator enumerator = HandleUserInfo(pairs);
 
         StartCoroutine(enumerator);
     }
 
 
-    private IEnumerator handleUserInfo(Dictionary<string, string> pairs)
+    private IEnumerator HandleUserInfo(Dictionary<string, string> pairs)
     {
         Debug.Log("이벤트 핸들 진입");
         flagWakeUp = false;
@@ -132,7 +134,7 @@ public class Login : MonoBehaviour
     }
     
 
-    private IEnumerator handleLogin(Dictionary<string, string> pairs)
+    private IEnumerator HandleLogin(Dictionary<string, string> pairs, bool isKakaoAccount=false, string id = "")
     {
         flagWakeUp = false;
         Debug.Log("로그인 핸들 진입");
@@ -147,8 +149,8 @@ public class Login : MonoBehaviour
         if (check["code"].ToString() == "success")
         {
             //로그인 성공시 세션을 위해 스태틱변수에 유저 정보저장
-            userId = IDfield.text;
-            userPw = PWfield.text;
+            userId = isKakaoAccount ? id : IDfield.text;
+            userPw = isKakaoAccount ? "default" : PWfield.text;
 
             if (auto.isOn)
             {
@@ -162,14 +164,14 @@ public class Login : MonoBehaviour
 
                 Debug.Log("실행완료");
 
-                getUserInfo();
+                GetUserInfo();
                 
              
             }
             //자동로그인 체크안된경우 그냥 메인화면으로 넘김
             else
             {
-                getUserInfo();
+                GetUserInfo();
                
                 //메인화면 씬으로 전환
             }
@@ -188,7 +190,7 @@ public class Login : MonoBehaviour
         //this.StopCoroutine(enumerator);
     }
 
-    public void clickLogin()
+    public void OnClickLoginBtn()
     {
         //flagWakeUp = false;
         //eventHandler = new EventHandler();
@@ -214,46 +216,175 @@ public class Login : MonoBehaviour
         pairs["id"] = IDfield.text;
         pairs["password"] = PWfield.text;
 
-        IEnumerator enumerator = handleLogin(pairs);
+        IEnumerator enumerator = HandleLogin(pairs);
 
         this.StartCoroutine(enumerator);
     }
 
-    public void clickRegister()
+    public void OnClickRegisterBtn()
     {
         SceneManager.LoadScene("RegisterUser");
     }
     
-    public void failed()
+    public void OnClickConfirmBtnOnFailed()
     {
         IDfield.text = "";
         PWfield.text = "";
+        failedText.text = "등록되지않은 사용자 이거나,\n비밀번호가 일치하지 않습니다.";
         LoginFailed.SetActive(false);
     }
 
-    public void KakaoLogin()
+    public void OnClickKakaoLoginBtn()
     {
-        try
-        {
-            //kotlin.Call("Login");
-            string key = kotlin.Call<string>("Login");
-            Debug.Log("로그인 지남.");
-            Debug.Log("Key : ==================" + key);
-        }
-        catch(Exception e)
-        {
-            Debug.LogError(e.ToString());
-        }
+        StartCoroutine(HandleKakaoLogin());
         
     }
 
     public void GetKakaoInfo()
     {
-        kotlin.Call("GetMe");
+        
+        kotlin.Call("UnLink");
+        //kotlin.Call("GetMe");
     }
 
     public void WakeUp()
     {
         flagWakeUp = true;
+    }
+
+    private JsonData RequestToKakao()
+    {
+        string key = kotlin.Call<string>("Login");
+        if (key != null)
+        {
+            return JsonMapper.ToObject(key);
+        }
+        else
+            return null;
+    }
+    private IEnumerator HandleKakaoLogin()
+    {
+        JsonData kakaoResponse = RequestToKakao();
+        if (kakaoResponse != null)
+        {
+            IDictionary kakaoDictionary = kakaoResponse["kakao_account"] as IDictionary;
+
+            // 받은 정보를 토대로 추가 정보 요청 혹은 재요청 검토
+            if (kakaoResponse["kakao_account"]["profile_needs_agreement"].ToString() == "False" || kakaoResponse["kakao_account"]["email_needs_agreement"].ToString() == "False")
+            {
+                // 프로필 제공 동의 혹은 이메일 제공 동의를 받지 못한 경우
+                kotlin.Call("RequestMoreInfo", new string[]{ "account_email", "gender", "age_range" });
+                kakaoResponse = RequestToKakao();
+            }
+            else if (kakaoResponse["kakao_account"]["has_email"].ToString() == "True" && !kakaoDictionary.Contains("email"))
+            {
+                // 이메일이 있는데도 이메일을 가져올 수 없는 경우
+                kotlin.Call("RequestMoreInfo", new string[] { "account_email", "gender", "age_range" });
+                kakaoResponse = RequestToKakao();
+            }
+
+            var pairs = new Dictionary<string, string>();
+            var kakaoID = "k" + kakaoResponse["id"].ToString();
+            pairs["url"] = kakaoID + "/check"; // 이메일로 체크할까..
+            pairs["method"] = "GET";
+
+            flagWakeUp = false;
+            eventHandler.onClick(this, serverManager.SendRequest(pairs), EventHandler.HandlingType.Default);
+            Debug.Log("이벤트 핸들러 실행");
+            while (!flagWakeUp)
+                yield return new WaitForSeconds(1.0f);
+
+            var check = eventHandler.result as JsonData;
+
+            Debug.Log(check["code"].ToString());
+
+            if (check["code"].ToString() == "success")
+            {
+                // 서버에 회원가입 요청
+                pairs.Clear();
+                pairs["url"] = kakaoID + "/profile";
+                pairs["method"] = "POST";
+                pairs["password"] = "default";
+                pairs["name"] = kakaoResponse["kakao_account"]["profile"]["nickname"].ToString();
+                pairs["sex"] = "None";
+                pairs["age"] = "-1";
+                if (kakaoResponse["kakao_account"]["has_gender"].ToString() == "True" && kakaoDictionary.Contains("gender"))
+                {
+                    // 성별 정보가 있다면
+                    pairs["sex"] = kakaoResponse["kakao_account"]["gender"].ToString();
+                }
+                if (kakaoResponse["kakao_account"]["has_age_range"].ToString() == "True" && kakaoDictionary.Contains("age_range"))
+                {
+                    // 연령대 정보가 있다면
+                    pairs["age"] = kakaoResponse["kakao_account"]["age_range"].ToString().Split('~')[0];
+                }
+
+                foreach (var i in pairs.Keys)
+                {
+                    Debug.Log(i + ": " + pairs[i]);
+                }
+
+                IEnumerator enumerator = HandleRegister(pairs, kakaoID);
+
+                this.StartCoroutine(enumerator);
+            }
+            else if (check["code"].ToString() == "duplicated")
+            {
+                // 이미 가입한 계정으로 로그인 진행
+                LoginByKakao(kakaoID);
+            }
+            else
+            {
+                failedText.text = "잠시 문제가 발생했습니다. 다시 한번 시도해주세요.";
+                LoginFailed.SetActive(true);
+            }
+
+            
+        }
+        else
+        {
+            // 카카오 로그인 실패
+            failedText.text = "카카오 계정과의 연결에 실패했습니다. 다시 시도해주세요.";
+            LoginFailed.SetActive(true);
+            Debug.LogError("카카오 로그인 실패");
+        }
+    }
+
+    private IEnumerator HandleRegister(Dictionary<string, string> pairs, string id)
+    {
+        flagWakeUp = false;
+        eventHandler.onClick(this, serverManager.SendRequest(pairs), EventHandler.HandlingType.Restaurants);
+
+        while (!flagWakeUp)
+            yield return new WaitForSeconds(1.0f);
+        var check = eventHandler.result as JsonData;
+
+        if (check["code"].ToString() == "success")
+        {
+            Debug.Log("카카오 로그인을 통한 회원가입 완료");
+
+            // 바로 로그인 진행
+            LoginByKakao(id);
+        }
+        else
+        {
+            failedText.text = "카카오 계정을 통한 회원가입에 실패했습니다. 다시 시도해주세요.";
+            LoginFailed.SetActive(true);
+            Debug.Log("카카오 로그인을 통한 회원가입 실패");
+        }
+
+    }
+
+    private void LoginByKakao(string id)
+    {
+        var pairs = new Dictionary<string, string>();
+        pairs["url"] = "user/auth";
+        pairs["method"] = "POST";
+        pairs["id"] = id;
+        pairs["password"] = "default";
+
+        IEnumerator enumerator = HandleLogin(pairs, true, id);
+
+        this.StartCoroutine(enumerator);
     }
 }

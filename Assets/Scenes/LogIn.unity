@@ -787,7 +787,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 857916096}
-        m_MethodName: clickRegister
+        m_MethodName: OnClickRegisterBtn
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1045,6 +1045,7 @@ MonoBehaviour:
   auto: {fileID: 450863974}
   LoginPanel: {fileID: 2141032813}
   LoginFailed: {fileID: 912706566}
+  failedText: {fileID: 1887579770}
   eventHandler: {fileID: 1134548971}
 --- !u!4 &857916097
 Transform:
@@ -1457,6 +1458,7 @@ MonoBehaviour:
   auto: {fileID: 0}
   LoginPanel: {fileID: 0}
   LoginFailed: {fileID: 0}
+  failedText: {fileID: 0}
   eventHandler: {fileID: 0}
 --- !u!1 &1104707796
 GameObject:
@@ -1790,7 +1792,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 857916096}
-        m_MethodName: failed
+        m_MethodName: OnClickConfirmBtnOnFailed
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2447,7 +2449,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 857916096}
-        m_MethodName: KakaoLogin
+        m_MethodName: OnClickKakaoLoginBtn
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2731,7 +2733,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 857916096}
-        m_MethodName: clickLogin
+        m_MethodName: OnClickLoginBtn
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

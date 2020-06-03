@@ -7,10 +7,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
-import com.kakao.auth.AuthType
-import com.kakao.auth.ISessionCallback
-import com.kakao.auth.KakaoSDK
-import com.kakao.auth.Session
+import com.kakao.auth.*
+import com.kakao.auth.authorization.accesstoken.AccessToken
 import com.kakao.network.ErrorResult
 import com.kakao.usermgmt.UserManagement
 import com.kakao.usermgmt.callback.LogoutResponseCallback
@@ -20,12 +18,14 @@ import com.kakao.usermgmt.response.MeV2Response
 import com.kakao.util.exception.KakaoException
 import com.unity3d.player.UnityPlayer
 import com.unity3d.player.UnityPlayerActivity
+import java.lang.Exception
 import java.security.MessageDigest
-import java.util.ArrayList
+import java.util.*
 
 class KakaoPlugin : UnityPlayerActivity() {
     var callback: SessionCallback? = null
     var userinfo:String = ""
+    var isUserUnLinked:Boolean = false
 
     override fun onCreate(p0: Bundle?) {
         super.onCreate(p0)
@@ -34,22 +34,29 @@ class KakaoPlugin : UnityPlayerActivity() {
         Session.getCurrentSession().addCallback(callback)
     }
 
-    fun Login(): String{
-        Session.getCurrentSession().open(AuthType.KAKAO_LOGIN_ALL, UnityPlayer.currentActivity)
-        val Keys = ArrayList<String>()
-        val result: MeV2Response? = UserManagement.getInstance().me(Keys,object: MeV2ResponseCallback(){
-            override fun onSuccess(result: MeV2Response?){
-                Log.d("ppap",result.toString())
-                userinfo = result.toString()
-            }
+    fun Login(): String?{
+        try {
+            Session.getCurrentSession().open(AuthType.KAKAO_LOGIN_ALL, UnityPlayer.currentActivity)
+            val Keys = ArrayList<String>()
 
-            override fun onSessionClosed(errorResult: ErrorResult?) {
-                Log.d("ppap","세션이 끊겨있어서 실패")
-            }
+            val result: MeV2Response =
+                UserManagement.getInstance().me(Keys, object : MeV2ResponseCallback() {
+                    override fun onSuccess(result: MeV2Response?) {
+                        Log.d("ppap", result.toString())
+                        userinfo = result.toString();
+                    }
 
-        }).get()
-        Log.i("ppap", "사용자 정보 수신 완료")
-        return result.toString()
+                    override fun onSessionClosed(errorResult: ErrorResult?) {
+                        Log.d("ppap", "세션이 끊겨있어서 실패")
+                    }
+
+                }).get()
+            Log.i("ppap", "사용자 정보 수신 완료")
+            return result.toString()
+        }
+        catch (ex:Exception){
+            return null
+        }
     }
 
     fun Logout(){
@@ -62,6 +69,8 @@ class KakaoPlugin : UnityPlayerActivity() {
 
     fun UnLink(){
         UnityPlayer.currentActivity.runOnUiThread{
+            isUserUnLinked = false
+
             var dialog = AlertDialog.Builder(UnityPlayer.currentActivity)
 
 
@@ -71,6 +80,7 @@ class KakaoPlugin : UnityPlayerActivity() {
             dialog.setNegativeButton("취소"){
                     dialog, which->
                 dialog.dismiss()
+
             }
 
             dialog.setPositiveButton("예"){
@@ -78,6 +88,7 @@ class KakaoPlugin : UnityPlayerActivity() {
                 UserManagement.getInstance().requestUnlink(object: UnLinkResponseCallback(){
                     override fun onSuccess(result: Long?) {
                         Log.d("ppap","탈퇴 되었습니다.")
+                        isUserUnLinked = true
                     }
 
                     override fun onSessionClosed(errorResult: ErrorResult?) {
@@ -85,8 +96,6 @@ class KakaoPlugin : UnityPlayerActivity() {
                     }
 
                 })
-
-
             }
 
             dialog.show()
@@ -107,6 +116,28 @@ class KakaoPlugin : UnityPlayerActivity() {
 
         })
     }
+
+    fun RequestMoreInfo(args:Array<String>){
+        // 필요한 동의항목의 scope ID (개발자사이트 해당 동의항목 설정에서 확인 가능)
+        var scopes:List<String> = args.toList();
+        Log.i("KAKAO_SESSION", "요청항목 : " + scopes.toString());
+        // 사용자 동의 요청
+        Session.getCurrentSession()
+            .updateScopes(UnityPlayer.currentActivity, scopes, object: AccessTokenCallback() {
+                override fun onAccessTokenReceived(accessToken:AccessToken) {
+                    Log.i("KAKAO_SESSION", "새로운 동의항목 추가 완료");
+
+                    // 요청한 scope이 추가되어 토큰이 재발급 됨
+
+                    // TODO: 사용자 동의 획득 이후 프로세스
+                }
+
+                override fun onAccessTokenFailure(errorResult:ErrorResult) {
+                    Log.e("KAKAO_SESSION", "사용자 동의 실패: " + errorResult);
+                }
+            });
+    }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
 

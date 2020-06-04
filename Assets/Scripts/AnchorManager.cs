@@ -31,15 +31,22 @@ public class AnchorManager : MonoBehaviour
 
     public GameObject canvas;
     public GameObject loadingBar;
-
-
-
+    public enum State { Browse, Detail, Navigation, Zzim }
+    public static State currentState;
+    public State previousState;
 
     LoadingManager loadingManager;
 
     float heading;
+
+    private void Awake()
+    {
+        //DontDestroyOnLoad(gameObject);
+    }
     private void Start()
     {
+        currentState = State.Browse;
+        previousState = State.Browse;
         loadingManager = loadingBar.transform.Find("vica").gameObject.GetComponent<LoadingManager>();
         StartCoroutine(loadRestaurants());
     }
@@ -66,11 +73,12 @@ public class AnchorManager : MonoBehaviour
 
             gameObject.transform.localScale = new Vector3(7, 4, 0);
             // Debug.Log("Added : " + restaurants[i].name);
+            gameObjects.Add(gameObject);
         }
 
         foreach (Anchor anchor in anchors)
         {
-            gameObjects.Add(gameObject);
+            gameObjects.Add(anchor.gameObject);
         }
 
         if (Session.Status != SessionStatus.Tracking)
@@ -81,7 +89,18 @@ public class AnchorManager : MonoBehaviour
 
     void Update()
     {
-        if (Input.touchCount > 0)
+        // 상태 변경 감지
+        if(currentState != previousState)
+        {
+            if (previousState == State.Detail && currentState == State.Browse)
+            {
+                foreach (var i in gameObjects)
+                    i.SetActive(true);
+            }
+        }
+        previousState = currentState;
+
+        if (currentState == State.Browse && Input.touchCount > 0)
         {
             Vector2 pos = Input.GetTouch(0).position;
             Vector3 theTouch = new Vector3(pos.x, pos.y, 0.0f);    // 변환 안하고 바로 Vector3로 받아도 되겠지.
@@ -93,15 +112,19 @@ public class AnchorManager : MonoBehaviour
             if (Physics.Raycast(ray, out hit, Mathf.Infinity))    // 레이저를 끝까지 쏴블자. 충돌 한넘이 있으면 return true다.
             {
                 if (Input.GetTouch(0).phase == TouchPhase.Began)    // 딱 처음 터치 할때 발생한다
-
                 {
                     target = hit.collider.gameObject;
                     Debug.Log(target.transform.position);
                     detailedRestaurantManager.SetActive(true);
                     showCheck = true;
                     canvas.SetActive(false);
-                }
 
+                    foreach(var i in gameObjects)
+                        i.SetActive(false);
+                    
+                    currentState = State.Detail;
+                    detailedRestaurantManager.GetComponent<DetailedRestaurantManager>().selectMenuTap();      
+                }
             }
         }
     }

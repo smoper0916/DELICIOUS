@@ -14,6 +14,11 @@ public class MainDisplay : MonoBehaviour
     public Button RecycleBT;
 
     public GameObject mainDisplay;
+
+    private void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+    }
     // Start is called before the first frame update
     void Start()
     {
@@ -27,6 +32,6 @@ public class MainDisplay : MonoBehaviour
 
     public void clickOptionBT()
     {
-        SceneManager.LoadScene("UserInfo");
+        SceneManager.LoadScene("UserInfo", LoadSceneMode.Additive);
     }
 }

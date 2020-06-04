@@ -646,6 +646,7 @@ MonoBehaviour:
   menuToggle: {fileID: 6744599688716981799}
   reviewToggle: {fileID: 6744599688808591834}
   photoToggle: {fileID: 6744599689946538229}
+  heartToggle: {fileID: 0}
   restaurantName: {fileID: 6744599689888398226}
   score: {fileID: 6744599687971629373}
   menuScrollRect: {fileID: 6744599687966447459}
@@ -656,6 +657,7 @@ MonoBehaviour:
   PhotoData: {fileID: 3252983827677789858, guid: 7acd232b6ff0dac4bb4c8576fd578539,
     type: 3}
   closeBtn: {fileID: 6744599688634243182}
+  canvas: {fileID: 0}
 --- !u!1 &6744599688403944999
 GameObject:
   m_ObjectHideFlags: 0
@@ -1885,7 +1887,6 @@ SpriteRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:

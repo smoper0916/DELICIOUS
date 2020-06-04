@@ -99,11 +99,13 @@ public class EventHandler : MonoBehaviour
                                 urls.Add(i.ToString());
                             }
                             result = urls;
+                            Debug.Log("이건 URL입니다.");
                         }
                         else if (dict.Contains("code"))
                         {
                             // 실패된 경우
                             result = jsonResult;
+                            Debug.Log("이건 에러입니다.");
                         }
                         break;
                     case HandlingType.Route:

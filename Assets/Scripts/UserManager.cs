@@ -42,7 +42,7 @@ public class UserManager : MonoBehaviour
 
         mailContent.text = Login.userId;
 
-        nameContent.text = Login.name;
+        nameContent.text = Login.nickname;
         ageContent.text = Login.age;
       
         sexContent.text = Login.sex;

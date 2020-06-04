@@ -10,20 +10,16 @@ using System;
 public class Login : MonoBehaviour
 {
     TouchScreenKeyboard keyboard;
-    AndroidJavaObject kotlin;
-    AndroidJavaObject kotlin2;
+    AndroidJavaObject kotlinKakaoPlugin;
 
     public Toggle autoLogin;
     public InputField IDfield;
     public InputField PWfield;
     public Toggle auto;
 
-    //public string checkid = "aaa";
-    //public string checkpw = "1234";
-
     public static string userId;
     public static string userPw;
-    public static string name;
+    public static string nickname;
     public static string age;
     public static string sex;
 
@@ -39,7 +35,7 @@ public class Login : MonoBehaviour
 
     private void Awake()
     {
-        kotlin = new AndroidJavaObject("com.delicious.ohtasty.KakaoPlugin");
+        kotlinKakaoPlugin = new AndroidJavaObject("com.delicious.ohtasty.KakaoPlugin");
     }
 
     public void Start()
@@ -105,7 +101,7 @@ public class Login : MonoBehaviour
 
         Debug.Log("사용자 정보요청" + check["user"]["name"].ToString() + check["user"]["age"].ToString());
 
-        name = check["user"]["name"].ToString();
+        nickname = check["user"]["name"].ToString();
         age = check["user"]["age"].ToString();
         if (check["user"]["sex"].ToString() == "f")
         {
@@ -245,7 +241,7 @@ public class Login : MonoBehaviour
     public void GetKakaoInfo()
     {
         
-        kotlin.Call("UnLink");
+        kotlinKakaoPlugin.Call("UnLink");
         //kotlin.Call("GetMe");
     }
 
@@ -256,7 +252,7 @@ public class Login : MonoBehaviour
 
     private JsonData RequestToKakao()
     {
-        string key = kotlin.Call<string>("Login");
+        string key = kotlinKakaoPlugin.Call<string>("Login");
         if (key != null)
         {
             return JsonMapper.ToObject(key);
@@ -270,6 +266,7 @@ public class Login : MonoBehaviour
         JsonData kakaoResponse = RequestToKakao();
         if (kakaoResponse != null)
             return kakaoResponse;
+        Debug.Log("카카오 로그인 재시도");
         return RequestToKakao();
     }
 
@@ -307,13 +304,13 @@ public class Login : MonoBehaviour
                 if (kakaoResponse["kakao_account"]["profile_needs_agreement"].ToString() == "False" || kakaoResponse["kakao_account"]["email_needs_agreement"].ToString() == "False")
                 {
                     // 프로필 제공 동의 혹은 이메일 제공 동의를 받지 못한 경우
-                    kotlin.Call("RequestMoreInfo", new string[] { "account_email", "gender", "age_range" });
+                    kotlinKakaoPlugin.Call("RequestMoreInfo", new string[] { "account_email", "gender", "age_range" });
                     kakaoResponse = RequestToKakao();
                 }
                 else if (kakaoResponse["kakao_account"]["has_email"].ToString() == "True" && !kakaoDictionary.Contains("email"))
                 {
                     // 이메일이 있는데도 이메일을 가져올 수 없는 경우
-                    kotlin.Call("RequestMoreInfo", new string[] { "account_email", "gender", "age_range" });
+                    kotlinKakaoPlugin.Call("RequestMoreInfo", new string[] { "account_email", "gender", "age_range" });
                     kakaoResponse = RequestToKakao();
                 }
 

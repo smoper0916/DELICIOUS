@@ -74,7 +74,7 @@ public class Login : MonoBehaviour
 
         LoginFailed.SetActive(false);
 
-        Debug.Log("[[[[[[[[[[[[ : "+kotlin.Get<string>("tt"));
+        
     }
 
     public void GetUserInfo()
@@ -100,7 +100,7 @@ public class Login : MonoBehaviour
         eventHandler.onClick(this, serverManager.SendRequest(pairs), EventHandler.HandlingType.Restaurants);
         Debug.Log("핸들러 온클릭");
         while (!flagWakeUp)
-            yield return new WaitForSeconds(1.0f);
+            yield return new WaitForSeconds(0.1f);
         var check = eventHandler.result as JsonData;
 
         Debug.Log("사용자 정보요청" + check["user"]["name"].ToString() + check["user"]["age"].ToString());
@@ -141,7 +141,7 @@ public class Login : MonoBehaviour
 
         eventHandler.onClick(this, serverManager.SendRequest(pairs), EventHandler.HandlingType.Restaurants);
         while (!flagWakeUp)
-            yield return new WaitForSeconds(1.0f);
+            yield return new WaitForSeconds(0.1f);
 
         var check = eventHandler.result as JsonData;
 
@@ -156,8 +156,8 @@ public class Login : MonoBehaviour
             {
 
 
-                PlayerPrefs.SetString("ID", IDfield.text);
-                PlayerPrefs.SetString("PW", PWfield.text);
+                PlayerPrefs.SetString("ID", userId);
+                PlayerPrefs.SetString("PW", userPw);
 
                 userId = PlayerPrefs.GetString("ID");
                 userPw = PlayerPrefs.GetString("PW");
@@ -179,11 +179,13 @@ public class Login : MonoBehaviour
         else if(check["code"].ToString() == "unexpected")
         {
             Debug.Log("500 Error");
+            failedText.text = "등록되지않은 사용자 이거나,\n비밀번호가 일치하지 않습니다.";
             LoginFailed.SetActive(true);
         }
         else
         {
             Debug.Log("비밀번호 오류");
+            failedText.text = "등록되지않은 사용자 이거나,\n비밀번호가 일치하지 않습니다.";
             LoginFailed.SetActive(true);
 
         }
@@ -262,27 +264,25 @@ public class Login : MonoBehaviour
         else
             return null;
     }
-    private IEnumerator HandleKakaoLogin()
+    private JsonData RequestToKakaoWithTwice()
     {
+        // Response가 null이면 한번 더 시도해 가져오기
         JsonData kakaoResponse = RequestToKakao();
         if (kakaoResponse != null)
+            return kakaoResponse;
+        return RequestToKakao();
+    }
+
+    private IEnumerator HandleKakaoLogin()
+    {
+        /*
+         * HandleKakaoLogin
+         * - 카카오 로그인을 One way 처리
+         */
+
+        JsonData kakaoResponse = RequestToKakaoWithTwice();
+        if (kakaoResponse != null)
         {
-            IDictionary kakaoDictionary = kakaoResponse["kakao_account"] as IDictionary;
-
-            // 받은 정보를 토대로 추가 정보 요청 혹은 재요청 검토
-            if (kakaoResponse["kakao_account"]["profile_needs_agreement"].ToString() == "False" || kakaoResponse["kakao_account"]["email_needs_agreement"].ToString() == "False")
-            {
-                // 프로필 제공 동의 혹은 이메일 제공 동의를 받지 못한 경우
-                kotlin.Call("RequestMoreInfo", new string[]{ "account_email", "gender", "age_range" });
-                kakaoResponse = RequestToKakao();
-            }
-            else if (kakaoResponse["kakao_account"]["has_email"].ToString() == "True" && !kakaoDictionary.Contains("email"))
-            {
-                // 이메일이 있는데도 이메일을 가져올 수 없는 경우
-                kotlin.Call("RequestMoreInfo", new string[] { "account_email", "gender", "age_range" });
-                kakaoResponse = RequestToKakao();
-            }
-
             var pairs = new Dictionary<string, string>();
             var kakaoID = "k" + kakaoResponse["id"].ToString();
             pairs["url"] = kakaoID + "/check"; // 이메일로 체크할까..
@@ -292,14 +292,31 @@ public class Login : MonoBehaviour
             eventHandler.onClick(this, serverManager.SendRequest(pairs), EventHandler.HandlingType.Default);
             Debug.Log("이벤트 핸들러 실행");
             while (!flagWakeUp)
-                yield return new WaitForSeconds(1.0f);
+                yield return new WaitForSeconds(0.1f);
 
             var check = eventHandler.result as JsonData;
 
             Debug.Log(check["code"].ToString());
+            var result = check["code"].ToString();
 
-            if (check["code"].ToString() == "success")
+            if (result == "success")
             {
+                IDictionary kakaoDictionary = kakaoResponse["kakao_account"] as IDictionary;
+
+                // 받은 정보를 토대로 추가 정보 요청 혹은 재요청 검토
+                if (kakaoResponse["kakao_account"]["profile_needs_agreement"].ToString() == "False" || kakaoResponse["kakao_account"]["email_needs_agreement"].ToString() == "False")
+                {
+                    // 프로필 제공 동의 혹은 이메일 제공 동의를 받지 못한 경우
+                    kotlin.Call("RequestMoreInfo", new string[] { "account_email", "gender", "age_range" });
+                    kakaoResponse = RequestToKakao();
+                }
+                else if (kakaoResponse["kakao_account"]["has_email"].ToString() == "True" && !kakaoDictionary.Contains("email"))
+                {
+                    // 이메일이 있는데도 이메일을 가져올 수 없는 경우
+                    kotlin.Call("RequestMoreInfo", new string[] { "account_email", "gender", "age_range" });
+                    kakaoResponse = RequestToKakao();
+                }
+
                 // 서버에 회원가입 요청
                 pairs.Clear();
                 pairs["url"] = kakaoID + "/profile";
@@ -328,7 +345,7 @@ public class Login : MonoBehaviour
 
                 this.StartCoroutine(enumerator);
             }
-            else if (check["code"].ToString() == "duplicated")
+            else if (result == "duplicated")
             {
                 // 이미 가입한 계정으로 로그인 진행
                 LoginByKakao(kakaoID);
@@ -338,8 +355,6 @@ public class Login : MonoBehaviour
                 failedText.text = "잠시 문제가 발생했습니다. 다시 한번 시도해주세요.";
                 LoginFailed.SetActive(true);
             }
-
-            
         }
         else
         {
@@ -348,6 +363,7 @@ public class Login : MonoBehaviour
             LoginFailed.SetActive(true);
             Debug.LogError("카카오 로그인 실패");
         }
+        yield break;
     }
 
     private IEnumerator HandleRegister(Dictionary<string, string> pairs, string id)
@@ -356,7 +372,7 @@ public class Login : MonoBehaviour
         eventHandler.onClick(this, serverManager.SendRequest(pairs), EventHandler.HandlingType.Restaurants);
 
         while (!flagWakeUp)
-            yield return new WaitForSeconds(1.0f);
+            yield return new WaitForSeconds(0.1f);
         var check = eventHandler.result as JsonData;
 
         if (check["code"].ToString() == "success")

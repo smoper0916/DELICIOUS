@@ -29,6 +29,8 @@ public class DetailedRestaurantManager : MonoBehaviour
     public GameObject NothingPanel;
     public Text NothingText;
 
+    public GameObject LoadingPoints;
+
     public Button closeBtn;
 
     bool isEmptyMenu = false;
@@ -83,6 +85,8 @@ public class DetailedRestaurantManager : MonoBehaviour
             }
 
             AnchorManager.showCheck = false;
+
+            selectMenuTap();
         }
     }
 
@@ -94,15 +98,17 @@ public class DetailedRestaurantManager : MonoBehaviour
         dic.Add("method", "GET");
 
         eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Menus);
-        
-        // ADD: 로딩 중 표시
+
+        LoadingPoints.SetActive(true);
         while (!flagWakeUp)
             yield return new WaitForSeconds(0.1f);
+
+        LoadingPoints.SetActive(false);
 
         if (eventHandler.result is MenuTabResult)
         {
             menuTabResult = eventHandler.result as MenuTabResult;
-            if (menuTabResult.menuList.Count == 0)
+            if (menuTabResult.menuList.Count != 0)
             {
                 foreach (Menu menu in menuTabResult.menuList)
                 {
@@ -148,11 +154,11 @@ public class DetailedRestaurantManager : MonoBehaviour
         dic.Add("page", "0");
 
         eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Reviews);
-        // ADD: 로딩 중 표시
+        LoadingPoints.SetActive(true);
         while (!flagWakeUp)
             yield return new WaitForSeconds(0.1f);
 
-
+        LoadingPoints.SetActive(false);
 
         ReviewTabResult reviewTabResult = eventHandler.result != null ? eventHandler.result as ReviewTabResult : null;
 
@@ -202,9 +208,10 @@ public class DetailedRestaurantManager : MonoBehaviour
         dic.Add("method", "GET");
 
         eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Photo);
-        // ADD: 로딩 중 표시
+        LoadingPoints.SetActive(true);
         while (!flagWakeUp)
             yield return new WaitForSeconds(0.1f);
+        LoadingPoints.SetActive(false);
         if (eventHandler.result == null) Debug.Log("eventHandler.result가 null이에요.");
         List<string> urls = eventHandler.result as List<string>;
         ScrollRect scrollRect = photoScrollRect.GetComponent<ScrollRect>();
@@ -306,7 +313,7 @@ public class DetailedRestaurantManager : MonoBehaviour
     }
     public void selectMenuTap()
     {
-        if (!btnPressed[0])
+        if (!btnPressed[0] &&(!onMenuCoroutine && !onReviewCoroutine && !onPhotoCoroutine))
         {
             btnPressed = new bool[] { true, false, false };
             menuBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnDetailed_menu_on");
@@ -314,7 +321,7 @@ public class DetailedRestaurantManager : MonoBehaviour
             photoBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnDetailed_photo_off");
 
             NothingPanel.SetActive(false);
-            if (!menuCheck && !onMenuCoroutine)
+            if (!menuCheck)
             {
                 StartCoroutine(loadMenu());
             }
@@ -339,7 +346,7 @@ public class DetailedRestaurantManager : MonoBehaviour
     }
     public void selectReviewTap()
     {
-        if (!btnPressed[1])
+        if (!btnPressed[1] && (!onMenuCoroutine && !onReviewCoroutine && !onPhotoCoroutine))
         {
             btnPressed = new bool[] { false, true, false };
             menuBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnDetailed_menu_off");
@@ -347,7 +354,7 @@ public class DetailedRestaurantManager : MonoBehaviour
             photoBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnDetailed_photo_off");
 
             NothingPanel.SetActive(false);
-            if (!reviewCheck && !onReviewCoroutine)
+            if (!reviewCheck)
             {
                 StartCoroutine(loadReviews());
 
@@ -372,14 +379,14 @@ public class DetailedRestaurantManager : MonoBehaviour
     }
     public void selectPhotoTap()
     {
-        if (!btnPressed[2])
+        if (!btnPressed[2] && (!onMenuCoroutine && !onReviewCoroutine && !onPhotoCoroutine))
         {
             btnPressed = new bool[] { false, false, true };
             menuBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnDetailed_menu_off");
             reviewBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnDetailed_review_off");
             photoBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnDetailed_photo_on");
             NothingPanel.SetActive(false);
-            if (!photoCheck && !onPhotoCoroutine)
+            if (!photoCheck)
             {
                 StartCoroutine(loadPhoto());
 

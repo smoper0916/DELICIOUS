@@ -123,7 +123,6 @@ public class AnchorManager : MonoBehaviour
                         i.SetActive(false);
                     
                     currentState = State.Detail;
-                    detailedRestaurantManager.GetComponent<DetailedRestaurantManager>().selectMenuTap();      
                 }
             }
         }

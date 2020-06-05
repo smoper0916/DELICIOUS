@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class _MainTestScript : MonoBehaviour
@@ -15,9 +16,12 @@ public class _MainTestScript : MonoBehaviour
     public EventHandler eventHandler;
     private ServerManager serverManager = new ServerManager();
     public GameObject reviewScrollRect;
-
+    Dictionary<string, string> dic = new Dictionary<string, string>();
     //public ViewPort g;
     public GameObject ReviewData;
+    public GameObject photoScrollRect;
+
+    public string id;
 
     void Start()
     {
@@ -27,7 +31,7 @@ public class _MainTestScript : MonoBehaviour
         //cameraObj.transform.rotation = Quaternion.Euler(0, Input.compass.trueHeading, 0);
         //StartCoroutine(DoLoop());
 
-        StartCoroutine(DoLoop2());
+        StartCoroutine(loadPhoto());
     }
 
     // Update is called once per frame
@@ -112,5 +116,128 @@ public class _MainTestScript : MonoBehaviour
     public void WakeUp()
     {
         flagWakeUp = true;
+    }
+
+    private IEnumerator loadPhoto()
+    {
+        flagWakeUp = false;
+        dic.Clear();
+        dic.Add("url", "restaurant/" + id + "/photo");
+        dic.Add("method", "GET");
+
+        eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Photo);
+        // ADD: 로딩 중 표시
+        while (!flagWakeUp)
+            yield return new WaitForSeconds(0.1f);
+        if (eventHandler.result == null) Debug.Log("eventHandler.result가 null이에요.");
+        List<string> urls = eventHandler.result as List<string>;
+        ScrollRect scrollRect = photoScrollRect.GetComponent<ScrollRect>();
+        Debug.Log(urls);
+        if (urls == null || urls.Count == 0)
+        {
+            yield break;
+        }
+        float y = 0;
+
+        var fixedWidth = 1800; var fixedHeight = 300; float anchorsMinMax = 0.1507898f;//1.3, 1
+        for (int i = 0; i < urls.Count; i+=2)
+        {
+            GameObject photoPanel = new GameObject("PhotoPanel" + i);
+            photoPanel.AddComponent<CanvasRenderer>();
+            RectTransform photoPanelRect = photoPanel.AddComponent<RectTransform>();
+            photoPanelRect.sizeDelta = new Vector2(fixedWidth, fixedHeight);
+            //photoPanel.GetComponent<RectTransform>().sizeDelta = new Vector2(fixedWidth, fixedHeight);
+            photoPanel.transform.SetParent(scrollRect.content);
+            //
+            GameObject insidePhoto1 = new GameObject("InsidePhoto1");
+            insidePhoto1.AddComponent<CanvasRenderer>();
+            RectTransform insidePhotoRect1 = insidePhoto1.AddComponent<RectTransform>();
+            //insidePhotoRect1.anchorMin = new Vector2(anchorsMinMax, 1);
+            //insidePhotoRect1.anchorMax = new Vector2(anchorsMinMax, 1);
+            insidePhotoRect1.pivot = new Vector2(1.3f, 1);
+            insidePhotoRect1.sizeDelta = new Vector2(350, 350);
+            
+            insidePhoto1.transform.SetParent(photoPanel.transform);
+            insidePhotoRect1.localPosition = new Vector3(0, 0, 0);
+
+            RawImage rawPhoto1 = insidePhoto1.AddComponent<RawImage>();
+
+            IEnumerator sender = downloadPhoto(urls[i], rawPhoto1);
+            while (sender.MoveNext())
+            {
+                object result = sender.Current;
+
+                if (result is UnityWebRequestAsyncOperation)
+                {
+                    var r = (UnityWebRequestAsyncOperation)result;
+                    while (!r.webRequest.isDone)
+                        yield return new WaitForSeconds(0.1f);
+                }
+                else
+                {
+                    Debug.Log(result);
+                }
+            }
+            if (i != urls.Count - 1)
+            {
+                GameObject insidePhoto2 = new GameObject("InsidePhoto2");
+                insidePhoto2.AddComponent<CanvasRenderer>();
+                RectTransform insidePhotoRect2 = insidePhoto2.AddComponent<RectTransform>();
+                insidePhotoRect2.pivot = new Vector2(1.3f, 1);
+                insidePhotoRect2.sizeDelta = new Vector2(350, 350);
+                
+                insidePhoto2.transform.SetParent(photoPanel.transform);
+                insidePhotoRect2.localPosition = new Vector3(350 + 75, 0, 0);
+                RawImage rawPhoto2 = insidePhoto2.AddComponent<RawImage>();
+
+
+                sender = downloadPhoto(urls[i + 1], rawPhoto2);
+                while (sender.MoveNext())
+                {
+                    object result = sender.Current;
+
+                    if (result is UnityWebRequestAsyncOperation)
+                    {
+                        var r = (UnityWebRequestAsyncOperation)result;
+                        while (!r.webRequest.isDone)
+                            yield return new WaitForSeconds(0.1f);
+                    }
+                    else
+                    {
+                        Debug.Log(result);
+                    }
+                }
+            }
+            /*
+            var datas = Instantiate(PhotoData, new Vector3(0, y, 0), Quaternion.identity, scrollRect.content);
+            RawImage[] photos = scrollRect.content.GetComponentsInChildren<RawImage>();
+
+            StartCoroutine(downloadPhoto(urls[i], photos[0]));
+            Debug.Log("Start Photo!");
+            if(i != urls.Count - 1)
+                StartCoroutine(downloadPhoto(urls[i + 1], photos[1]));
+
+            y -= 400;
+            */
+
+        }
+    }
+
+    private IEnumerator downloadPhoto(string url, RawImage image)
+    {
+        Debug.Log("StartDownloadingPhoto => " + url);
+        UnityWebRequest www = UnityWebRequestTexture.GetTexture(url);
+        yield return www.SendWebRequest();
+
+        if (www.isNetworkError)
+        {
+            Debug.Log(www.error);
+        }
+        else
+        {
+            Texture myTexture = ((DownloadHandlerTexture)www.downloadHandler).texture;
+            image.texture = myTexture;
+            Debug.Log("Texture 생성 완료");
+        }
     }
 }

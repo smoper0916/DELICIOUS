@@ -38,30 +38,32 @@ public class PostBehaviour : MonoBehaviour
 
         coroutineManager = new CoroutineManager(this, sender);
 
-        //while (sender.MoveNext())
-        //{
-        //    object result = sender.Current;
+        /*
+        while (sender.MoveNext())
+        {
+            object result = sender.Current;
 
-        //    if (result is UnityWebRequestAsyncOperation)
-        //    {
-        //        var r = (UnityWebRequestAsyncOperation)result;
-        //        while (!r.webRequest.isDone)
-        //        {
-        //            Debug.Log(r.isDone);
-        //        }
-        //        var res = r.webRequest.downloadHandler.text;
-        //        JsonData obj = JsonMapper.ToObject(res);
-        //        Debug.Log(res);
-        //    }
-        //    else if (result is JsonData)
-        //    {
-        //        Debug.Log((JsonData)result);
-        //    }
-        //    else
-        //    {
-        //        Debug.Log(result);
-        //    }
-        //}
+            if (result is UnityWebRequestAsyncOperation)
+            {
+                var r = (UnityWebRequestAsyncOperation)result;
+                while (!r.webRequest.isDone)
+                {
+                    Debug.Log(r.isDone);
+                }
+                var res = r.webRequest.downloadHandler.text;
+                JsonData obj = JsonMapper.ToObject(res);
+                Debug.Log(res);
+            }
+            else if (result is JsonData)
+            {
+                Debug.Log((JsonData)result);
+            }
+            else
+            {
+                Debug.Log(result);
+            }
+        }
+        */
 
     }
 

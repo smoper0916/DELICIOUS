@@ -38,6 +38,7 @@ public class DetailedRestaurantManager : MonoBehaviour
 
     GameObject target;
     TextMesh[] textMeshs;
+    List<GameObject> panels = new List<GameObject>();
 
     MenuTabResult menuTabResult = new MenuTabResult();
 
@@ -208,7 +209,7 @@ public class DetailedRestaurantManager : MonoBehaviour
         List<string> urls = eventHandler.result as List<string>;
         ScrollRect scrollRect = photoScrollRect.GetComponent<ScrollRect>();
         Debug.Log(urls);
-        if (urls.Count == 0)
+        if (urls == null || urls.Count == 0)
         {
             NothingText.text = "사진이 없습니다.";
             NothingPanel.SetActive(true);
@@ -219,22 +220,86 @@ public class DetailedRestaurantManager : MonoBehaviour
         }
         isEmptyPhoto = false;
         float y = 0;
-        for (int i = 0; i < urls.Count / 2 + 1; i++)
-        {
-            var datas = Instantiate(PhotoData, new Vector3(0, y, 0), Quaternion.identity, scrollRect.content);
-            RawImage[] photos = scrollRect.content.GetComponentsInChildren<RawImage>();
 
-            StartCoroutine(downloadPhoto(urls[i], photos[0]));
-            Debug.Log("Start Photo!");
-            if(i != urls.Count - 1)
-                StartCoroutine(downloadPhoto(urls[i + 1], photos[1]));
-
-            y -= 400;
-
-        }
         reviewScrollRect.SetActive(false);
         photoScrollRect.SetActive(true);
         menuScrollRect.SetActive(false);
+
+        var fixedWidth = 1800; var fixedHeight = 300;
+        var photoSize = 350; var pivotX = 1.3f; var pivotY = 1.0f;
+        for (int i = 0; i < urls.Count; i += 2)
+        {
+            GameObject photoPanel = new GameObject("PhotoPanel" + i);
+            photoPanel.AddComponent<CanvasRenderer>();
+            RectTransform photoPanelRect = photoPanel.AddComponent<RectTransform>();
+            photoPanelRect.sizeDelta = new Vector2(fixedWidth, fixedHeight);
+            //photoPanel.GetComponent<RectTransform>().sizeDelta = new Vector2(fixedWidth, fixedHeight);
+            photoPanel.transform.SetParent(scrollRect.content);
+            //
+            GameObject insidePhoto1 = new GameObject("InsidePhoto1");
+            insidePhoto1.AddComponent<CanvasRenderer>();
+            RectTransform insidePhotoRect1 = insidePhoto1.AddComponent<RectTransform>();
+            insidePhotoRect1.pivot = new Vector2(pivotX, pivotY);
+            insidePhotoRect1.sizeDelta = new Vector2(photoSize, photoSize);
+
+            insidePhoto1.transform.SetParent(photoPanel.transform);
+            insidePhotoRect1.localPosition = new Vector3(0, 0, 0);
+
+            RawImage rawPhoto1 = insidePhoto1.AddComponent<RawImage>();
+
+            IEnumerator sender = downloadPhoto(urls[i], rawPhoto1);
+            while (sender.MoveNext())
+            {
+                object result = sender.Current;
+
+                if (result is UnityWebRequestAsyncOperation)
+                {
+                    var r = (UnityWebRequestAsyncOperation)result;
+                    while (!r.webRequest.isDone)
+                        yield return new WaitForSeconds(0.1f);
+                }
+                else
+                {
+                    Debug.Log(result);
+                }
+            }
+            if (i != urls.Count - 1)
+            {
+                GameObject insidePhoto2 = new GameObject("InsidePhoto2");
+                insidePhoto2.AddComponent<CanvasRenderer>();
+                RectTransform insidePhotoRect2 = insidePhoto2.AddComponent<RectTransform>();
+                insidePhotoRect2.pivot = new Vector2(pivotX, pivotY);
+                insidePhotoRect2.sizeDelta = new Vector2(photoSize, photoSize);
+
+                insidePhoto2.transform.SetParent(photoPanel.transform);
+                insidePhotoRect2.localPosition = new Vector3(photoSize + 75, 0, 0);
+                RawImage rawPhoto2 = insidePhoto2.AddComponent<RawImage>();
+                
+
+                sender = downloadPhoto(urls[i + 1], rawPhoto2);
+                while (sender.MoveNext())
+                {
+                    object result = sender.Current;
+
+                    if (result is UnityWebRequestAsyncOperation)
+                    {
+                        var r = (UnityWebRequestAsyncOperation)result;
+                        while (!r.webRequest.isDone)
+                            yield return new WaitForSeconds(0.1f);
+                    }
+                    else
+                    {
+                        Debug.Log(result);
+                    }
+                }
+            }
+        }
+        GameObject blankPanel = new GameObject("BlankPanel");
+        blankPanel.AddComponent<CanvasRenderer>();
+        RectTransform blankPanelRect = blankPanel.AddComponent<RectTransform>();
+        blankPanelRect.sizeDelta = new Vector2(fixedWidth, fixedHeight);
+        blankPanel.transform.SetParent(scrollRect.content);
+
 
         photoCheck = true;
         onPhotoCoroutine = false;
@@ -354,7 +419,6 @@ public class DetailedRestaurantManager : MonoBehaviour
             image.texture = myTexture;
             Debug.Log("Texture 생성 완료");
         }
-
     }
 
     public void WakeUp()
@@ -381,6 +445,8 @@ public class DetailedRestaurantManager : MonoBehaviour
         contents.text = "";
 
         foreach (Transform child in reviewRect.content)
+            Destroy(child.gameObject);
+        foreach (Transform child in photoRect.content)
             Destroy(child.gameObject);
 
 

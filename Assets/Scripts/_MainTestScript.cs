@@ -20,8 +20,11 @@ public class _MainTestScript : MonoBehaviour
     //public ViewPort g;
     public GameObject ReviewData;
     public GameObject photoScrollRect;
-
+    public GameObject mainCamera;
     public string id;
+
+    public GameObject target;
+
 
     void Start()
     {
@@ -31,12 +34,15 @@ public class _MainTestScript : MonoBehaviour
         //cameraObj.transform.rotation = Quaternion.Euler(0, Input.compass.trueHeading, 0);
         //StartCoroutine(DoLoop());
 
-        StartCoroutine(loadPhoto());
+        //StartCoroutine(loadPhoto());
     }
 
     // Update is called once per frame
     void Update()
     {
+        //target.transform.Rotate()
+        float dist = Vector3.Distance(mainCamera.transform.position, target.transform.position);
+        Debug.Log(dist);
         //currentHeading = Quaternion.Euler(0, -Input.compass.trueHeading, 0);
 
         //cameraObj.transform.rotation = Quaternion.Slerp(cameraObj.transform.rotation,

@@ -24,10 +24,16 @@ public class DetailedRestaurantManager : MonoBehaviour
     public GameObject photoScrollRect;
 
     public GameObject ReviewData;
-    public GameObject PhotoData;
+    public GameObject MenuPanelData;
+    public GameObject MenuItemData1;
+    public GameObject MenuItemData1WithoutPhoto;
+    public GameObject MenuItemData2;
+    public GameObject MenuItemData2WithoutPhoto;
+    public GameObject DespPanelData;
 
     public GameObject NothingPanel;
     public Text NothingText;
+    public GameObject BizHourText;
 
     public GameObject LoadingPoints;
 
@@ -105,22 +111,114 @@ public class DetailedRestaurantManager : MonoBehaviour
 
         LoadingPoints.SetActive(false);
 
+        ScrollRect scrollRect = menuScrollRect.GetComponent<ScrollRect>();
+
+        var bizHourObject = Instantiate(BizHourText, new Vector3(0, 0, 0), Quaternion.identity, scrollRect.content);
         if (eventHandler.result is MenuTabResult)
         {
             menuTabResult = eventHandler.result as MenuTabResult;
+
+            if (menuTabResult.biztime != "")
+            {
+                bizHourObject.GetComponent<Text>().text = menuTabResult.biztime;
+            }
+            else
+            {
+                bizHourObject.GetComponent<Text>().text = "영업시간 정보가 없네요.";
+            }
+
             if (menuTabResult.menuList.Count != 0)
             {
-                foreach (Menu menu in menuTabResult.menuList)
+                for (int i = 0; i < menuTabResult.menuList.Count; i += 2)
                 {
-                    txt = txt + menu.name + "------------" + menu.price + "\n";
+                    var menuPanelObject = Instantiate(MenuPanelData, new Vector3(0, 0, 0), Quaternion.identity, scrollRect.content);
+
+                    Menu menu1 = menuTabResult.menuList[i];
+
+                    GameObject menuItemObject1 = Instantiate((menu1.img != null) ? MenuItemData1 : MenuItemData1WithoutPhoto, menuPanelObject.transform);
+                    Text[] txtComponents = menuItemObject1.GetComponentsInChildren<Text>();
+                    
+                    txtComponents[0].text = menu1.name;
+                    txtComponents[1].text = menu1.price;
+
+                    if (menu1.img != null)
+                    {
+
+                        RawImage thumnail = menuItemObject1.GetComponentInChildren<RawImage>();
+                        IEnumerator sender = downloadPhoto(menu1.img, thumnail);
+                        while (sender.MoveNext())
+                        {
+                            object result = sender.Current;
+
+                            if (result is UnityWebRequestAsyncOperation)
+                            {
+                                var r = (UnityWebRequestAsyncOperation)result;
+                                while (!r.webRequest.isDone)
+                                    yield return new WaitForSeconds(0.1f);
+                            }
+                            else
+                            {
+                                Debug.Log(result);
+                            }
+                        }
+                    }
+
+                    if (i != menuTabResult.menuList.Count - 1)
+                    {
+                        Menu menu2 = menuTabResult.menuList[i + 1];
+                        GameObject menuItemObject2 = Instantiate((menu2.img != null) ? MenuItemData2 : MenuItemData2WithoutPhoto, menuPanelObject.transform);
+                        Text[] txtComponents2 = menuItemObject2.GetComponentsInChildren<Text>();
+
+                        txtComponents2[0].text = menu2.name;
+                        txtComponents2[1].text = menu2.price;
+
+                        if (menu2.img != null)
+                        {
+                            RawImage thumnail = menuItemObject2.GetComponentInChildren<RawImage>();
+                            IEnumerator sender = downloadPhoto(menu2.img, thumnail);
+                            while (sender.MoveNext())
+                            {
+                                object result = sender.Current;
+
+                                if (result is UnityWebRequestAsyncOperation)
+                                {
+                                    var r = (UnityWebRequestAsyncOperation)result;
+                                    while (!r.webRequest.isDone)
+                                        yield return new WaitForSeconds(0.1f);
+                                }
+                                else
+                                {
+                                    Debug.Log(result);
+                                }
+                            }
+                        }
+
+
+                        RectTransform menuRect1 = menuItemObject1.GetComponent<RectTransform>();
+                        RectTransform menuRect2 = menuItemObject2.GetComponent<RectTransform>();
+                        if (menu1.img == null && menu2.img == null)
+                            menuPanelObject.GetComponent<RectTransform>().sizeDelta = new Vector2(menuPanelObject.GetComponent<RectTransform>().sizeDelta[0], 500);
+                        else if (menu1.img == null)
+                            menuRect1.offsetMin = new Vector2(menuRect1.offsetMin.x, 600);
+                        else if (menu2.img == null)
+                            menuRect2.offsetMin = new Vector2(menuRect2.offsetMin.x, 600);
+                    }
+                    else
+                    {
+                        RectTransform menuRect1 = menuItemObject1.GetComponent<RectTransform>();
+                        if (menu1.img == null)
+                        {
+                            menuPanelObject.GetComponent<RectTransform>().sizeDelta = new Vector2(menuPanelObject.GetComponent<RectTransform>().sizeDelta[0], 500);
+                            menuRect1.offsetMin = new Vector2(menuRect1.offsetMin.x, 600);
+                        }
+                    }
                 }
-                Debug.Log(txt);
                 reviewScrollRect.SetActive(false);
                 photoScrollRect.SetActive(false);
 
                 menuScrollRect.SetActive(true);
 
-                ScrollRect scrollRect = menuScrollRect.GetComponent<ScrollRect>();
+                //ScrollRect scrollRect = menuScrollRect.GetComponent<ScrollRect>();
                 Text contents = scrollRect.content.GetComponentInChildren<Text>();
                 contents.text = txt;
                 isEmptyMenu = false;
@@ -128,11 +226,11 @@ public class DetailedRestaurantManager : MonoBehaviour
                 photoScrollRect.SetActive(false);
                 menuScrollRect.SetActive(true);
             }
-            else
+
+            if (menuTabResult.desc != "")
             {
-                NothingText.text = "이 식당은 메뉴 정보가 없습니다.";
-                NothingPanel.SetActive(true);
-                isEmptyMenu = true;
+                var despPanelObject = Instantiate(DespPanelData, new Vector3(0, 0, 0), Quaternion.identity, scrollRect.content);
+                despPanelObject.transform.Find("DespText").GetComponent<Text>().text = menuTabResult.desc;
             }
         }
         else
@@ -451,6 +549,8 @@ public class DetailedRestaurantManager : MonoBehaviour
         photoCheck = false; isEmptyPhoto = false; onPhotoCoroutine = false;
         contents.text = "";
 
+        foreach (Transform child in menuRect.content)
+            Destroy(child.gameObject);
         foreach (Transform child in reviewRect.content)
             Destroy(child.gameObject);
         foreach (Transform child in photoRect.content)

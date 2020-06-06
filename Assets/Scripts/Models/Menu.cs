@@ -12,10 +12,11 @@ public class Menu
     public string price { get; set; }
     public string img { get; set; }
 
-    public Menu(string name, string price)
+    public Menu(string name, string price, string img = null)
     {
         this.name = name;
         this.price = price;
+        this.img = img;
     }
 }
 

@@ -52,13 +52,12 @@ public class EventHandler : MonoBehaviour
                         }
                         break;
                     case HandlingType.Menus:
-                        if (dict.Contains("info"))
+                        if (dict.Contains("info") && dict.Contains("menu"))
                         {
                             List<Menu> menuList = new List<Menu>();
                             foreach (JsonData i in jsonResult["menu"])
                             {
-                                menuList.Add(new Menu(i["name"].ToString(), i["price"].ToString()));
-                                // 썸네일까지 불러오게 해야함.
+                                menuList.Add(new Menu(i["name"].ToString(), i["price"].ToString(), ((i as IDictionary).Contains("img")) ? i["img"].ToString() : null));
                             }
                             result = new MenuTabResult(menuList, jsonResult["info"]);
                         }

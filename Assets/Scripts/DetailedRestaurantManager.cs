@@ -58,6 +58,7 @@ public class DetailedRestaurantManager : MonoBehaviour
     string txt;
     private bool flagWakeUp = false;
     private bool flagSelect = false;
+    private bool isInitLikedToggle = false;
 
     private bool menuCheck = false; bool onMenuCoroutine = false;
     private bool reviewCheck = false; bool onReviewCoroutine = false;
@@ -81,13 +82,15 @@ public class DetailedRestaurantManager : MonoBehaviour
             id = textMeshs[0].text;
             restaurantName.text = textMeshs[2].text;
             score.text = textMeshs[1].text;
-            if (AnchorManager.restaurants[id].zzimCheck == false)
+
+            isInitLikedToggle = true;
+            if (zzim.ContainsKey(id))
             {
-                heartToggle.isOn = false;
+                heartToggle.isOn = true;
             }
             else
             {
-                heartToggle.isOn = true;
+                heartToggle.isOn = false;
             }
 
             AnchorManager.showCheck = false;
@@ -113,11 +116,11 @@ public class DetailedRestaurantManager : MonoBehaviour
 
         ScrollRect scrollRect = menuScrollRect.GetComponent<ScrollRect>();
 
-        var bizHourObject = Instantiate(BizHourText, new Vector3(0, 0, 0), Quaternion.identity, scrollRect.content);
+        
         if (eventHandler.result is MenuTabResult)
         {
             menuTabResult = eventHandler.result as MenuTabResult;
-
+            var bizHourObject = Instantiate(BizHourText, new Vector3(0, 0, 0), Quaternion.identity, scrollRect.content);
             if (menuTabResult.biztime != "")
             {
                 bizHourObject.GetComponent<Text>().text = menuTabResult.biztime;
@@ -569,35 +572,34 @@ public class DetailedRestaurantManager : MonoBehaviour
 
     public void ClickHeart()
     {
-
-        if (heartToggle.isOn)
+        if (isInitLikedToggle) isInitLikedToggle = false;
+        else
         {
-            if (zzim.Count < 4)
+            if (zzim.ContainsKey(id))
             {
-                AnchorManager.restaurants[id].zzimCheck = true;
-                zzim[id] = AnchorManager.restaurants[id];
+                //AnchorManager.restaurants[id].zzimCheck = false;
+                heartToggle.isOn = false;
+                zzim.Remove(id);
+                Debug.Log(id + "삭제");
+                ToastMaker.instance.ShowToast("찜이 취소되었습니다.");
             }
             else
             {
-                if (AnchorManager.restaurants[id].zzimCheck == false)
+                if (zzim.Count < 4)
+                {
+                    //AnchorManager.restaurants[id].zzimCheck = true;
+                    heartToggle.isOn = true;
+                    zzim[id] = AnchorManager.restaurants[id];
+                    ToastMaker.instance.ShowToast("찜이 등록되었습니다.");
+                }
+                else
                 {
                     heartToggle.isOn = false;
                     Debug.Log("찜목록은 최대 4개까지 가능");
+                    ToastMaker.instance.ShowToast("찜 인벤토리가 꽉 찼습니다. 찜은 4개까지만 가능합니다.");
                 }
-
             }
         }
-        else
-        {
-            if (AnchorManager.restaurants[id].zzimCheck == true)
-            {
-                AnchorManager.restaurants[id].zzimCheck = false;
-                zzim.Remove(id);
-                Debug.Log(id + "삭제");
-            }
-
-        }
-
     }
 
 }

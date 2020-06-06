@@ -126,6 +126,8 @@ public class AnchorManager : MonoBehaviour
                 }
             }
         }
+
+        Debug.Log("[카메라 위치] "+transform.position);
     }
     private IEnumerator loadRestaurants()
     {

@@ -32,11 +32,11 @@ public class AnchorManager : MonoBehaviour
 
     public GameObject canvas;
     public GameObject loadingBar;
-    public GameObject likedBtn;
     public GameObject zzimData;
 
     public List<GameObject> zzimObjList = new List<GameObject>();
 
+    public enum ZzimEventType { DELETE, GO, DETAIL}
     public enum State { Browse, Detail, Navigation, Zzim }
     public static State currentState;
     public State previousState;
@@ -290,9 +290,12 @@ public class AnchorManager : MonoBehaviour
         {
             Debug.Log(DetailedRestaurantManager.zzim.Count);
 
+            List<KeyValuePair<string, Restaurant>> zzim = new List<KeyValuePair<string, Restaurant>>();
             currentState = State.Zzim;
             foreach (var i in gameObjects)
                 i.SetActive(false);
+            foreach (var i in DetailedRestaurantManager.zzim)
+                zzim.Add(new KeyValuePair<string, Restaurant>(i.Key, i.Value));
 
             // 1. 현재 찜의 개수를 확인해서 개수별 처리를 한다.
             // -는 좌측, +는 우측
@@ -300,7 +303,10 @@ public class AnchorManager : MonoBehaviour
             var vCamera = Camera.main.transform.position;
             var vDistance = Vector3.forward * PrefixDistance;
             Quaternion qRotate; Vector3 vTargetPoint; Vector3 vDest;
-            GameObject zzimObj1; GameObject zzimObj2; GameObject zzimObj3; GameObject zzimObj4; GameObject zzimPanel;
+            GameObject zzimObj1; GameObject zzimObj2; GameObject zzimObj3; GameObject zzimObj4;
+            Transform zzimPanel; Transform ratingPanel;Transform ratingTxt; Transform likedBtn; Transform nameTxt; Transform menuTxt; Transform navigatingBtn;
+            Text[] txtComponents; Button[] btnComponents;
+
             switch (DetailedRestaurantManager.zzim.Count)
             {
                 case 0:
@@ -316,7 +322,21 @@ public class AnchorManager : MonoBehaviour
 
                     zzimObj1 = Instantiate(zzimData, vDest, Quaternion.identity, transform.root);
                     zzimObj1.transform.LookAt(Camera.main.transform);
-                    //zzimPanel = zzimObj.transform.Find("ZzimPanel");
+                    zzimPanel = zzimObj1.transform.Find("ZzimPanel");
+
+                    zzimPanel.GetComponent<Button>().onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[0].Key, ZzimEventType.DETAIL); });
+
+                    txtComponents = zzimPanel.GetComponentsInChildren<Text>();
+                    btnComponents = zzimPanel.GetComponentsInChildren<Button>();
+
+                    // 해당 찜의 정보 표출
+                    txtComponents[1].text = zzim[0].Value.rating.ToString();
+                    txtComponents[2].text = zzim[0].Value.name;
+                    txtComponents[3].text = zzim[0].Value.x.ToString(); // 대표메뉴인데.. 모르겠다.
+
+                    // 찜에 맞는 OnClickListener 등록
+                    btnComponents[0].onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[0].Key, ZzimEventType.DELETE); });
+                    btnComponents[1].onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[0].Key, ZzimEventType.GO); });
 
                     zzimObjList.Add(zzimObj1);
                     break;
@@ -407,14 +427,22 @@ public class AnchorManager : MonoBehaviour
         }
     }
 
-    public void OnClickLikedBtn()
+    public void OnClickZzimPanelButtons(string id, ZzimEventType eventType)
     {
-        likedBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnDetailed_menu_on");
+        switch (eventType)
+        {
+            case ZzimEventType.DELETE:
+                break;
 
-        
-        transform.Rotate(Vector3.up, 60f, Space.World);
-        var cameraVector = Camera.main.transform.position;
-        Vector3 finalDirection = cameraVector + cameraVector.normalized * 1681;
+            case ZzimEventType.GO:
+                break;
+
+            case ZzimEventType.DETAIL:
+                break;
+
+            default:
+                break;
+        }
     }
 
 }

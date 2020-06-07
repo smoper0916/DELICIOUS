@@ -295,11 +295,15 @@ public class AnchorManager : MonoBehaviour
         
     }
 
-    public void OnClickZzimPanelButtons(string id, ZzimEventType eventType)
+    public void OnClickZzimPanelButtons(string id, string name, ZzimEventType eventType)
     {
         switch (eventType)
         {
             case ZzimEventType.DELETE:
+                ToastMaker.instance.ShowToast(name + "이 찜 목록에서 삭제되었습니다. ");
+                DetailedRestaurantManager.zzim.Remove(id);
+                ClearZzim();
+                StartCoroutine(HandlerZzim());
                 break;
 
             case ZzimEventType.GO:
@@ -337,61 +341,54 @@ public class AnchorManager : MonoBehaviour
             angleArray.Add(2, new float[] { 22.5f, -22.5f });// 내 카메라 우측 22.5도, 좌측 22.5도 생성
             angleArray.Add(3, new float[] { 45f, 0, -45f });// 내 카메라 우측 45도, 중앙, 좌측 45도 생성
             angleArray.Add(4, new float[] { 67.5f, 22.5f, -22.5f, -67.5f });// 내 카메라 우측 45 + 22.5, 22.5 , 좌측 22.5, 45 + 22.5
-            
-            switch (DetailedRestaurantManager.zzim.Count)
+
+            if (DetailedRestaurantManager.zzim.Count > 0)
             {
-                case 0:
-                    // 찜 목록이 없다고 안내한다.
-                    ToastMaker.instance.ShowToast("찜 목록이 비어있습니다.");
-                    yield return new WaitForEndOfFrame();
-                    currentState = State.Browse;
+                // 내 카메라 앞에 생성한다.
+                for (var i = 0; i < DetailedRestaurantManager.zzim.Count; i++)
+                {
+                    //ToastMaker.instance.ShowToast(angleArray[DetailedRestaurantManager.zzim.Count][i].ToString());
+                    qRotate = Quaternion.Euler(0f, angleArray[DetailedRestaurantManager.zzim.Count][i], 0f);
+                    vTargetPoint = (Camera.main.transform.rotation * qRotate) * vDistance;
+                    vDest = vCamera + vTargetPoint;
 
-                    break;
-                case 1:
-                case 2:
-                case 3:
-                case 4:
-                    // 내 카메라 앞에 생성한다.
-                    for (var i=0; i< DetailedRestaurantManager.zzim.Count; i++)
-                    {
-                        //ToastMaker.instance.ShowToast(angleArray[DetailedRestaurantManager.zzim.Count][i].ToString());
-                        qRotate = Quaternion.Euler(0f, angleArray[DetailedRestaurantManager.zzim.Count][i], 0f);
-                        vTargetPoint = (Camera.main.transform.rotation * qRotate) * vDistance;
-                        vDest = vCamera + vTargetPoint;
+                    zzimObjList.Add(Instantiate(zzimData, vDest, Quaternion.identity, null));
+                    zzimObjList[i].transform.LookAt(Camera.main.transform);
 
-                        zzimObjList.Add(Instantiate(zzimData, vDest, Quaternion.identity, null));
-                        zzimObjList[i].transform.LookAt(Camera.main.transform);
+                    zzimPanel = zzimObjList[i].transform.Find("ZzimPanel");
 
-                        zzimPanel = zzimObjList[i].transform.Find("ZzimPanel");
+                    zzimPanel.GetComponent<Button>().onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[i].Key, zzim[i].Value.name, ZzimEventType.DETAIL); });
 
-                        zzimPanel.GetComponent<Button>().onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[i].Key, ZzimEventType.DETAIL); });
+                    txtComponents = zzimPanel.GetComponentsInChildren<Text>();
+                    btnComponents = zzimPanel.GetComponentsInChildren<Button>();
 
-                        txtComponents = zzimPanel.GetComponentsInChildren<Text>();
-                        btnComponents = zzimPanel.GetComponentsInChildren<Button>();
+                    // 해당 찜의 정보 표출
+                    txtComponents[1].text = zzim[i].Value.rating.ToString();
+                    txtComponents[2].text = zzim[i].Value.name;
+                    txtComponents[3].text = "대표메뉴가\n없습니다."; // 대표메뉴인데.. 모르겠다.
 
-                        // 해당 찜의 정보 표출
-                        txtComponents[1].text = zzim[i].Value.rating.ToString();
-                        txtComponents[2].text = zzim[i].Value.name;
-                        txtComponents[3].text = "대표메뉴가\n없습니다."; // 대표메뉴인데.. 모르겠다.
-
-                        // 찜에 맞는 OnClickListener 등록
-                        btnComponents[0].onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[i].Key, ZzimEventType.DELETE); });
-                        btnComponents[1].onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[i].Key, ZzimEventType.GO); });
-                        
-                        
-                    }
-                    break;
-                default:
-                    break;
+                    // 찜에 맞는 OnClickListener 등록
+                    btnComponents[0].onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[i].Key, zzim[i].Value.name, ZzimEventType.DELETE); });
+                    btnComponents[1].onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[i].Key, zzim[i].Value.name, ZzimEventType.GO); });
+                }
+            }
+            else
+            {
+                // 찜 목록이 없다고 안내한다.
+                ToastMaker.instance.ShowToast("찜 목록이 비어있습니다.");
+                yield return new WaitForEndOfFrame();
+                currentState = State.Browse;
             }
         }
         else
-        {
-            foreach (GameObject i in zzimObjList)
-                Destroy(i);
-            zzimObjList.Clear();
-            currentState = State.Browse;
-        }
+            ClearZzim();
     }
 
+    public void ClearZzim()
+    {
+        foreach (GameObject i in zzimObjList)
+            Destroy(i);
+        zzimObjList.Clear();
+        currentState = State.Browse;
+    }
 }

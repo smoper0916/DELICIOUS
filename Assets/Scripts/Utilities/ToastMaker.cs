@@ -13,6 +13,7 @@ public class ToastMaker : MonoBehaviour
     AndroidJavaObject context;
     AndroidJavaObject toast;
 
+    public enum Gravity { DEFAULT, VERTICAL_CENTER }
 
     void Awake()
     {
@@ -32,7 +33,7 @@ public class ToastMaker : MonoBehaviour
         DontDestroyOnLoad(this.gameObject);
     }
 
-    public void ShowToast(string message)
+    public void ShowToast(string message, Gravity gravity = Gravity.VERTICAL_CENTER)
     {
         currentActivity.Call
         (
@@ -56,8 +57,11 @@ public class ToastMaker : MonoBehaviour
                     Toast.GetStatic<int>("LENGTH_SHORT")
                 );
 
-                var center = Gravity.GetStatic<int>("CENTER_VERTICAL");
-                toast.Call("setGravity", center, 0, 0);
+                if (gravity == ToastMaker.Gravity.VERTICAL_CENTER)
+                {
+                    var center = Gravity.GetStatic<int>("CENTER_VERTICAL");
+                    toast.Call("setGravity", center, 0, 0);
+                }
                 toast.Call("show");
             })
          );

@@ -3435,7 +3435,6 @@ MonoBehaviour:
   detailedRestaurantManager: {fileID: 2011856824}
   canvas: {fileID: 1182936439}
   loadingBar: {fileID: 1418296410}
-  likedBtn: {fileID: 0}
   zzimData: {fileID: 2697718086182272741, guid: 1a5bb2f3125471e42887e9a9009bc2af,
     type: 3}
   zzimObjList: []

@@ -80,7 +80,7 @@ public class AnchorManager : MonoBehaviour
 
             gameObject.transform.localScale = new Vector3(7, 4, 0);
             // Debug.Log("Added : " + restaurants[i].name);
-            gameObjects.Add(gameObject);
+            // gameObjects.Add(gameObject);
         }
 
         foreach (Anchor anchor in anchors)
@@ -108,6 +108,11 @@ public class AnchorManager : MonoBehaviour
             {
                 foreach (var i in gameObjects)
                     i.SetActive(true);
+            }
+            else if (previousState == State.Browse && currentState == State.Zzim)
+            {
+                foreach (var i in gameObjects)
+                    i.SetActive(false);
             }
         }
         previousState = currentState;
@@ -286,145 +291,8 @@ public class AnchorManager : MonoBehaviour
 
     public void ClickZzimBtn()
     {
-        if (currentState == State.Browse)
-        {
-            Debug.Log(DetailedRestaurantManager.zzim.Count);
-
-            List<KeyValuePair<string, Restaurant>> zzim = new List<KeyValuePair<string, Restaurant>>();
-            currentState = State.Zzim;
-            foreach (var i in gameObjects)
-                i.SetActive(false);
-            foreach (var i in DetailedRestaurantManager.zzim)
-                zzim.Add(new KeyValuePair<string, Restaurant>(i.Key, i.Value));
-
-            // 1. 현재 찜의 개수를 확인해서 개수별 처리를 한다.
-            // -는 좌측, +는 우측
-            var PrefixDistance = 1681.0f;
-            var vCamera = Camera.main.transform.position;
-            var vDistance = Vector3.forward * PrefixDistance;
-            Quaternion qRotate; Vector3 vTargetPoint; Vector3 vDest;
-            GameObject zzimObj1; GameObject zzimObj2; GameObject zzimObj3; GameObject zzimObj4;
-            Transform zzimPanel; Transform ratingPanel;Transform ratingTxt; Transform likedBtn; Transform nameTxt; Transform menuTxt; Transform navigatingBtn;
-            Text[] txtComponents; Button[] btnComponents;
-
-            switch (DetailedRestaurantManager.zzim.Count)
-            {
-                case 0:
-                    // 찜 목록이 없다고 안내한다.
-                    ToastMaker.instance.ShowToast("찜 목록이 비어있습니다.");
-                    currentState = State.Browse;
-                    break;
-                case 1:
-                    // 내 카메라 앞에 생성한다.
-
-                    vTargetPoint = Camera.main.transform.rotation * vDistance;
-                    vDest = vCamera + vTargetPoint;
-
-                    zzimObj1 = Instantiate(zzimData, vDest, Quaternion.identity, transform.root);
-                    zzimObj1.transform.LookAt(Camera.main.transform);
-                    zzimPanel = zzimObj1.transform.Find("ZzimPanel");
-
-                    zzimPanel.GetComponent<Button>().onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[0].Key, ZzimEventType.DETAIL); });
-
-                    txtComponents = zzimPanel.GetComponentsInChildren<Text>();
-                    btnComponents = zzimPanel.GetComponentsInChildren<Button>();
-
-                    // 해당 찜의 정보 표출
-                    txtComponents[1].text = zzim[0].Value.rating.ToString();
-                    txtComponents[2].text = zzim[0].Value.name;
-                    txtComponents[3].text = zzim[0].Value.x.ToString(); // 대표메뉴인데.. 모르겠다.
-
-                    // 찜에 맞는 OnClickListener 등록
-                    btnComponents[0].onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[0].Key, ZzimEventType.DELETE); });
-                    btnComponents[1].onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[0].Key, ZzimEventType.GO); });
-
-                    zzimObjList.Add(zzimObj1);
-                    break;
-                case 2:
-                    // 내 카메라 우측 22.5도, 좌측 22.5도 생성
-                    qRotate = Quaternion.Euler(0f, 22.5f, 0f);
-                    vTargetPoint = (Camera.main.transform.rotation * qRotate) * vDistance;
-                    vDest = vCamera + vTargetPoint;
-
-                    zzimObj1 = Instantiate(zzimData, vDest, Quaternion.identity, transform.root);
-                    zzimObj1.transform.LookAt(Camera.main.transform);
-
-                    qRotate = Quaternion.Euler(0f, -22.5f, 0f);
-                    vTargetPoint = (Camera.main.transform.rotation * qRotate) * vDistance;
-                    vDest = vCamera + vTargetPoint;
-
-                    zzimObj2 = Instantiate(zzimData, vDest, Quaternion.identity, transform.root);
-                    zzimObj2.transform.LookAt(Camera.main.transform);
-
-                    zzimObjList.AddRange(new GameObject[] { zzimObj1, zzimObj2 });
-                    break;
-                case 3:
-                    // 내 카메라 우측 45도, 중앙, 좌측 45도 생성
-                    qRotate = Quaternion.Euler(0f, 45f, 0f);
-                    vTargetPoint = (Camera.main.transform.rotation * qRotate) * vDistance;
-                    vDest = vCamera + vTargetPoint;
-
-                    zzimObj1 = Instantiate(zzimData, vDest, Quaternion.identity, transform.root);
-                    zzimObj1.transform.LookAt(Camera.main.transform);
-
-                    qRotate = Quaternion.Euler(0f, 0f, 0f);
-                    vTargetPoint = (Camera.main.transform.rotation * qRotate) * vDistance;
-                    vDest = vCamera + vTargetPoint;
-
-                    zzimObj2 = Instantiate(zzimData, vDest, Quaternion.identity, transform.root);
-                    zzimObj2.transform.LookAt(Camera.main.transform);
-
-                    qRotate = Quaternion.Euler(0f, -45f, 0f);
-                    vTargetPoint = (Camera.main.transform.rotation * qRotate) * vDistance;
-                    vDest = vCamera + vTargetPoint;
-
-                    zzimObj3 = Instantiate(zzimData, vDest, Quaternion.identity, transform.root);
-                    zzimObj3.transform.LookAt(Camera.main.transform);
-
-                    zzimObjList.AddRange(new GameObject[] { zzimObj1, zzimObj2, zzimObj3});
-                    break;
-                case 4:
-                    // 내 카메라 우측 45 + 22.5, 22.5 , 좌측 22.5, 45 + 22.5
-                    qRotate = Quaternion.Euler(0f, 67.5f, 0f);
-                    vTargetPoint = (Camera.main.transform.rotation * qRotate) * vDistance;
-                    vDest = vCamera + vTargetPoint;
-
-                    zzimObj1 = Instantiate(zzimData, vDest, Quaternion.identity, transform.root);
-                    zzimObj1.transform.LookAt(Camera.main.transform);
-
-                    qRotate = Quaternion.Euler(0f, 22.5f, 0f);
-                    vTargetPoint = (Camera.main.transform.rotation * qRotate) * vDistance;
-                    vDest = vCamera + vTargetPoint;
-
-                    zzimObj2 = Instantiate(zzimData, vDest, Quaternion.identity, transform.root);
-                    zzimObj2.transform.LookAt(Camera.main.transform);
-
-                    qRotate = Quaternion.Euler(0f, -22.5f, 0f);
-                    vTargetPoint = (Camera.main.transform.rotation * qRotate) * vDistance;
-                    vDest = vCamera + vTargetPoint;
-
-                    zzimObj3 = Instantiate(zzimData, vDest, Quaternion.identity, transform.root);
-                    zzimObj3.transform.LookAt(Camera.main.transform);
-
-                    qRotate = Quaternion.Euler(0f, -67.5f, 0f);
-                    vTargetPoint = (Camera.main.transform.rotation * qRotate) * vDistance;
-                    vDest = vCamera + vTargetPoint;
-
-                    zzimObj4 = Instantiate(zzimData, vDest, Quaternion.identity, transform.root);
-                    zzimObj4.transform.LookAt(Camera.main.transform);
-
-                    zzimObjList.AddRange(new GameObject[] { zzimObj1, zzimObj2, zzimObj3, zzimObj4 });
-                    break;
-                default:
-                    break;
-            }
-        }
-        else
-        {
-            foreach(GameObject i in zzimObjList)
-                Destroy(i);
-            currentState = State.Browse;
-        }
+        StartCoroutine(HandlerZzim());
+        
     }
 
     public void OnClickZzimPanelButtons(string id, ZzimEventType eventType)
@@ -442,6 +310,87 @@ public class AnchorManager : MonoBehaviour
 
             default:
                 break;
+        }
+    }
+
+    public IEnumerator HandlerZzim()
+    {
+        if (currentState == State.Browse)
+        {
+            Debug.Log(DetailedRestaurantManager.zzim.Count);
+
+            List<KeyValuePair<string, Restaurant>> zzim = new List<KeyValuePair<string, Restaurant>>();
+            currentState = State.Zzim;
+            foreach (var i in DetailedRestaurantManager.zzim)
+                zzim.Add(new KeyValuePair<string, Restaurant>(i.Key, i.Value));
+
+            // 1. 현재 찜의 개수를 확인해서 개수별 처리를 한다.
+            // -는 좌측, +는 우측
+            var PrefixDistance = 1681.0f;
+            var vCamera = Camera.main.transform.position;
+            var vDistance = Vector3.forward * PrefixDistance;
+            Quaternion qRotate; Vector3 vTargetPoint; Vector3 vDest;
+            Transform zzimPanel; Text[] txtComponents; Button[] btnComponents;
+
+            Dictionary<int, float[]> angleArray = new Dictionary<int, float[]>();
+            angleArray.Add(1, new float[] { 0f });
+            angleArray.Add(2, new float[] { 22.5f, -22.5f });// 내 카메라 우측 22.5도, 좌측 22.5도 생성
+            angleArray.Add(3, new float[] { 45f, 0, -45f });// 내 카메라 우측 45도, 중앙, 좌측 45도 생성
+            angleArray.Add(4, new float[] { 67.5f, 22.5f, -22.5f, -67.5f });// 내 카메라 우측 45 + 22.5, 22.5 , 좌측 22.5, 45 + 22.5
+            
+            switch (DetailedRestaurantManager.zzim.Count)
+            {
+                case 0:
+                    // 찜 목록이 없다고 안내한다.
+                    ToastMaker.instance.ShowToast("찜 목록이 비어있습니다.");
+                    yield return new WaitForEndOfFrame();
+                    currentState = State.Browse;
+
+                    break;
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                    // 내 카메라 앞에 생성한다.
+                    for (var i=0; i< DetailedRestaurantManager.zzim.Count; i++)
+                    {
+                        //ToastMaker.instance.ShowToast(angleArray[DetailedRestaurantManager.zzim.Count][i].ToString());
+                        qRotate = Quaternion.Euler(0f, angleArray[DetailedRestaurantManager.zzim.Count][i], 0f);
+                        vTargetPoint = (Camera.main.transform.rotation * qRotate) * vDistance;
+                        vDest = vCamera + vTargetPoint;
+
+                        zzimObjList.Add(Instantiate(zzimData, vDest, Quaternion.identity, null));
+                        zzimObjList[i].transform.LookAt(Camera.main.transform);
+
+                        zzimPanel = zzimObjList[i].transform.Find("ZzimPanel");
+
+                        zzimPanel.GetComponent<Button>().onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[i].Key, ZzimEventType.DETAIL); });
+
+                        txtComponents = zzimPanel.GetComponentsInChildren<Text>();
+                        btnComponents = zzimPanel.GetComponentsInChildren<Button>();
+
+                        // 해당 찜의 정보 표출
+                        txtComponents[1].text = zzim[i].Value.rating.ToString();
+                        txtComponents[2].text = zzim[i].Value.name;
+                        txtComponents[3].text = "대표메뉴가\n없습니다."; // 대표메뉴인데.. 모르겠다.
+
+                        // 찜에 맞는 OnClickListener 등록
+                        btnComponents[0].onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[i].Key, ZzimEventType.DELETE); });
+                        btnComponents[1].onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[i].Key, ZzimEventType.GO); });
+                        
+                        
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        else
+        {
+            foreach (GameObject i in zzimObjList)
+                Destroy(i);
+            zzimObjList.Clear();
+            currentState = State.Browse;
         }
     }
 

@@ -5,10 +5,10 @@ using System.Collections.Generic;
 public class Restaurant
 {
     public string id { get; private set; }
-    public string name { get; private set; }
+    public string name { get; set; }
     public float x { get; private set; }
     public float y { get; private set; }
-    public float rating { get; private set; }
+    public float rating { get; set; }
     public string mood { get; private set; }
     public string brief { get; private set; }
     public string category { get; private set; }
@@ -19,6 +19,8 @@ public class Restaurant
     {
         
     }
+
+    
 
     public Restaurant(JsonData i)
     {

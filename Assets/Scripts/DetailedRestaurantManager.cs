@@ -8,10 +8,10 @@ using UnityEngine.EventSystems;
 
 public class DetailedRestaurantManager : MonoBehaviour
 {
+    public static DetailedRestaurantManager instance { get; set; }
     public EventHandler eventHandler;
     public ServerManager serverManager;
-
-    public Toggle heartToggle;
+    bool isHeartOn = false;
 
     public Button menuBtn;
     public Button reviewBtn;
@@ -56,7 +56,8 @@ public class DetailedRestaurantManager : MonoBehaviour
 
     public GameObject canvas;
 
-    string id;
+    public string id;
+    public Button heartBtn;
     string txt;
 
     private bool flagWakeUp = false;
@@ -69,10 +70,11 @@ public class DetailedRestaurantManager : MonoBehaviour
 
     public static Dictionary<string, Restaurant> zzim = new Dictionary<string, Restaurant>();
     Dictionary<string, string> dic = new Dictionary<string, string>();
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        instance = this;
     }
 
     private void Update()
@@ -81,19 +83,25 @@ public class DetailedRestaurantManager : MonoBehaviour
         {
             txt = "";
             this.target = AnchorManager.target;
-            textMeshs = target.GetComponentsInChildren<TextMesh>();
-            id = textMeshs[0].text;
-            restaurantName.text = textMeshs[2].text;
-            score.text = textMeshs[1].text;
+
+            if (previous == AnchorManager.State.Browse)
+            {
+                textMeshs = target.GetComponentsInChildren<TextMesh>();
+                id = textMeshs[0].text;
+                restaurantName.text = textMeshs[2].text;
+                score.text = textMeshs[1].text;
+            }
 
             isInitLikedToggle = true;
             if (zzim.ContainsKey(id))
             {
-                heartToggle.isOn = true;
+                isHeartOn = true;
+                heartBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnHeart_On");
             }
             else
             {
-                heartToggle.isOn = false;
+                isHeartOn = false;
+                heartBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnHeart_Off");
             }
 
             AnchorManager.showCheck = false;
@@ -573,32 +581,31 @@ public class DetailedRestaurantManager : MonoBehaviour
 
     public void ClickHeart()
     {
-        if (isInitLikedToggle) isInitLikedToggle = false;
+        if (zzim.ContainsKey(id))
+        {
+            //AnchorManager.restaurants[id].zzimCheck = false;
+            isHeartOn = false;
+            heartBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnHeart_Off");
+            zzim.Remove(id);
+            Debug.Log(id + "삭제");
+            ToastMaker.instance.ShowToast("찜이 취소되었습니다.");
+        }
         else
         {
-            if (zzim.ContainsKey(id))
+            if (zzim.Count < 4)
             {
-                //AnchorManager.restaurants[id].zzimCheck = false;
-                heartToggle.isOn = false;
-                zzim.Remove(id);
-                Debug.Log(id + "삭제");
-                ToastMaker.instance.ShowToast("찜이 취소되었습니다.");
+                //AnchorManager.restaurants[id].zzimCheck = true;
+                isHeartOn = true;
+                heartBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnHeart_On");
+                zzim[id] = AnchorManager.restaurants[id];
+                ToastMaker.instance.ShowToast("찜이 등록되었습니다.");
             }
             else
             {
-                if (zzim.Count < 4)
-                {
-                    //AnchorManager.restaurants[id].zzimCheck = true;
-                    heartToggle.isOn = true;
-                    zzim[id] = AnchorManager.restaurants[id];
-                    ToastMaker.instance.ShowToast("찜이 등록되었습니다.");
-                }
-                else
-                {
-                    heartToggle.isOn = false;
-                    Debug.Log("찜목록은 최대 4개까지 가능");
-                    ToastMaker.instance.ShowToast("찜 인벤토리가 꽉 찼습니다. 찜은 4개까지만 가능합니다.");
-                }
+                isHeartOn = false;
+                heartBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnHeart_Off");
+                Debug.Log("찜목록은 최대 4개까지 가능");
+                ToastMaker.instance.ShowToast("찜 인벤토리가 꽉 찼습니다. 찜은 4개까지만 가능합니다.");
             }
         }
     }

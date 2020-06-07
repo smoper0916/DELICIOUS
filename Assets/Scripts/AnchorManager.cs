@@ -42,6 +42,7 @@ public class AnchorManager : MonoBehaviour
     public State previousState;
 
     LoadingManager loadingManager;
+    List<KeyValuePair<string, Restaurant>> zzim = new List<KeyValuePair<string, Restaurant>>();
 
     float heading;
     int backKeyCnt = 0;
@@ -130,14 +131,15 @@ public class AnchorManager : MonoBehaviour
                 detailedRestaurantManager.SetActive(true);
                 showCheck = true;
                 canvas.SetActive(false);
-
                 foreach (GameObject i in zzimObjList)
-                    i.SetActive(false);
+                    Destroy(i);
+                zzimObjList.Clear();
+
             }
             else if (previousState == State.Detail && currentState == State.Zzim)
             {
-                foreach (GameObject i in zzimObjList)
-                    i.SetActive(true);
+                
+                StartCoroutine(HandlerZzim(false));
             }
             else
             {
@@ -319,22 +321,28 @@ public class AnchorManager : MonoBehaviour
         
     }
 
-    public void OnClickZzimPanelButtons(string id, string name, ZzimEventType eventType)
+    public void OnClickZzimPanelButtons(string id, string name, string rating, ZzimEventType eventType)
     {
         switch (eventType)
         {
             case ZzimEventType.DELETE:
                 ToastMaker.instance.ShowToast(name + "이 찜 목록에서 삭제되었습니다. ");
                 DetailedRestaurantManager.zzim.Remove(id);
-                ClearZzim();
-                StartCoroutine(HandlerZzim());
+                foreach (GameObject i in zzimObjList)
+                    Destroy(i);
+                zzimObjList.Clear();
+                StartCoroutine(HandlerZzim(false));
                 break;
 
             case ZzimEventType.GO:
                 break;
 
             case ZzimEventType.DETAIL:
+                DetailedRestaurantManager.instance.restaurantName.text = name;
+                DetailedRestaurantManager.instance.id = id;
+                DetailedRestaurantManager.instance.score.text = rating;
                 currentState = State.Detail;
+                
                 break;
 
             default:
@@ -342,37 +350,21 @@ public class AnchorManager : MonoBehaviour
         }
     }
 
-    public void OnClickZzimPanelButtons1(string id, string name, ZzimEventType eventType)
+    public IEnumerator HandlerZzim(bool isToggle = true)
     {
-        switch (eventType)
-        {
-            case ZzimEventType.DELETE:
-                ToastMaker.instance.ShowToast(name + "이 찜 목록에서 삭제되었습니다. ");
-                DetailedRestaurantManager.zzim.Remove(id);
-                ClearZzim();
-                StartCoroutine(HandlerZzim());
-                break;
-
-            case ZzimEventType.GO:
-                break;
-
-            case ZzimEventType.DETAIL:
-                ToastMaker.instance.ShowToast(id);
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    public IEnumerator HandlerZzim()
-    {
-        if (currentState == State.Browse)
+        if ((isToggle && currentState == State.Browse) || (currentState == State.Zzim && !isToggle))
         {
             Debug.Log(DetailedRestaurantManager.zzim.Count);
 
-            List<KeyValuePair<string, Restaurant>> zzim = new List<KeyValuePair<string, Restaurant>>();
+
             currentState = State.Zzim;
+            zzim.Clear();
+            /*
+            var r = new Restaurant();
+            r.name = "고베규카츠 상수점";
+            r.rating = 3.57f;
+            DetailedRestaurantManager.zzim.Add("37275398", r);
+            */
             foreach (var i in DetailedRestaurantManager.zzim)
                 zzim.Add(new KeyValuePair<string, Restaurant>(i.Key, i.Value));
 
@@ -404,11 +396,15 @@ public class AnchorManager : MonoBehaviour
                     zzimObjList[i].transform.LookAt(Camera.main.transform);
 
                     zzimPanel = zzimObjList[i].transform.Find("ZzimPanel");
+                    var resId = zzim[i].Key;
+                    var resName = zzim[i].Value.name;
+                    var resRating = zzim[i].Value.rating.ToString();
 
-                    zzimPanel.GetComponent<Button>().onClick.AddListener(delegate () { OnClickZzimPanelButtons1(zzim[i].Key, zzim[i].Value.name, ZzimEventType.DETAIL); });
 
                     txtComponents = zzimPanel.GetComponentsInChildren<Text>();
                     btnComponents = zzimPanel.GetComponentsInChildren<Button>();
+                    btnComponents[0].onClick.AddListener(delegate { OnClickZzimPanelButtons(resId, resName, resRating, ZzimEventType.DETAIL); });
+                    Debug.Log("컴포넌트 + " + btnComponents.Length);
 
                     // 해당 찜의 정보 표출
                     txtComponents[1].text = zzim[i].Value.rating.ToString();
@@ -416,8 +412,8 @@ public class AnchorManager : MonoBehaviour
                     txtComponents[3].text = "대표메뉴가\n없습니다."; // 대표메뉴인데.. 모르겠다.
 
                     // 찜에 맞는 OnClickListener 등록
-                    btnComponents[0].onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[i].Key, zzim[i].Value.name, ZzimEventType.DELETE); });
-                    btnComponents[1].onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[i].Key, zzim[i].Value.name, ZzimEventType.GO); });
+                    btnComponents[1].onClick.AddListener(delegate { OnClickZzimPanelButtons(resId, resName, resRating, ZzimEventType.DELETE); });
+                    btnComponents[2].onClick.AddListener(delegate { OnClickZzimPanelButtons(resId, resName, resRating, ZzimEventType.GO); });
                 }
             }
             else
@@ -429,14 +425,11 @@ public class AnchorManager : MonoBehaviour
             }
         }
         else
-            ClearZzim();
-    }
-
-    public void ClearZzim()
-    {
-        foreach (GameObject i in zzimObjList)
-            Destroy(i);
-        zzimObjList.Clear();
-        currentState = State.Browse;
+        {
+            foreach (GameObject i in zzimObjList)
+                Destroy(i);
+            zzimObjList.Clear();
+            currentState = State.Browse;
+        }
     }
 }

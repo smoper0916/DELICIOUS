@@ -32,6 +32,7 @@ public class DetailedRestaurantManager : MonoBehaviour
     public GameObject MenuItemData2;
     public GameObject MenuItemData2WithoutPhoto;
     public GameObject DespPanelData;
+    public GameObject NaviObject;
 
     public GameObject NothingPanel;
     public Text NothingText;
@@ -52,12 +53,11 @@ public class DetailedRestaurantManager : MonoBehaviour
 
     MenuTabResult menuTabResult = new MenuTabResult();
 
-
-
     public GameObject canvas;
 
     string id;
     string txt;
+
     private bool flagWakeUp = false;
     private bool flagSelect = false;
     private bool isInitLikedToggle = false;
@@ -545,14 +545,12 @@ public class DetailedRestaurantManager : MonoBehaviour
         ScrollRect reviewRect = reviewScrollRect.GetComponent<ScrollRect>();
         ScrollRect photoRect = photoScrollRect.GetComponent<ScrollRect>();
 
-        Text contents = menuRect.content.GetComponentInChildren<Text>();
         RawImage[] photos = photoRect.content.GetComponentsInChildren<RawImage>();
 
         AnchorManager.currentState = AnchorManager.State.Browse;
         menuCheck = false; isEmptyMenu = false; onMenuCoroutine = false;
         reviewCheck = false; isEmptyReview = false; onReviewCoroutine = false;
         photoCheck = false; isEmptyPhoto = false; onPhotoCoroutine = false;
-        contents.text = "";
 
         foreach (Transform child in menuRect.content)
             Destroy(child.gameObject);
@@ -604,4 +602,9 @@ public class DetailedRestaurantManager : MonoBehaviour
         }
     }
 
+    public void CreateNavi()
+    {
+        NaviObject = Instantiate(NaviObject,Vector3.zero,Quaternion.identity, null);
+       Destroy(transform.gameObject);
+    }
 }

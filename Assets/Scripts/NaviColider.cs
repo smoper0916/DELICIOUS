@@ -18,6 +18,7 @@ public class NaviColider : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        Debug.Log("충돌충돌충돌충돌충돌충돌충돌충돌");
         if (other.gameObject.tag == "wayPoint")
         {
             Debug.Log("충돌충돌충돌충돌충돌충돌충돌충돌");

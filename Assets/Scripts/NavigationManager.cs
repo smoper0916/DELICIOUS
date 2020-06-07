@@ -50,7 +50,7 @@ public class NavigationManager : MonoBehaviour
 
         //Invoke("test", 3.0f);
 
-        arrow = Instantiate(NavPrefab, new Vector3(0, Camera.main.transform.position.y - 0.35f, 0.5f), NavPrefab.transform.rotation, Camera.main.transform);
+        arrow = Instantiate(NavPrefab, new Vector3(0, Camera.main.transform.position.y - 0.5f , 0.3f), NavPrefab.transform.rotation, Camera.main.transform);
         InvokeRepeating("CheckDegree", 5, 5);
     }
 
@@ -124,7 +124,7 @@ public class NavigationManager : MonoBehaviour
 
         foreach (WayPoint wayPoint in wayPoints)
         {
-            Debug.Log(string.Format("lat : {0} lon : {1}", wayPoint.lon, wayPoint.lat));
+            Debug.Log(string.Format("lat : {0} lon : {1}", wayPoint.lat, wayPoint.lon));
 
             var latOffset = (float.Parse(wayPoint.lat) - gpsLat) * degreesLatitudeInMeters;
             var lonOffset = (float.Parse(wayPoint.lon) - gpsLon) * GetLongitudeDegreeDistance(float.Parse(wayPoint.lat));
@@ -187,7 +187,9 @@ public class NavigationManager : MonoBehaviour
 
             wayPoint.SetActive(false);
         }
-        wayPoint = Instantiate(Destination, anchors[anchors.Count - 1].transform.position, Destination.transform.rotation, anchors[anchors.Count - 1].transform);
+
+        Vector3 point = new Vector3(anchors[anchors.Count - 1].transform.position.x, anchors[anchors.Count - 1].transform.position.y + 0.25f, anchors[anchors.Count - 1].transform.position.z);
+        wayPoint = Instantiate(Destination, point, Destination.transform.rotation, anchors[anchors.Count - 1].transform);
         wayPointsGameObject.Add(wayPoint);
         wayPoint.SetActive(false);
 
@@ -225,9 +227,13 @@ public class NavigationManager : MonoBehaviour
             
             wayPointsGameObject[idx].SetActive(false);
 
+            idx++;
+
             checkWayPoint = false;
 
-            idx++;
+
+            ToastMaker.instance.ShowToast("Next CheckPoint");
+            
         }
     }
 }

@@ -27,11 +27,12 @@ public class UserManager : MonoBehaviour
     public GameObject UnMatchCurrentError;
     public GameObject UnMatchChangeError;
     public GameObject MyHistory;
-    
+
+    public List<GameObject> list = new List<GameObject>();
 
     public GameObject historyData;
     public GameObject scrollView;
-    
+
     //Image navi;
 
     int num = 10;
@@ -125,9 +126,14 @@ public class UserManager : MonoBehaviour
             //    Debug.Log(k);
             //}
 
-            var Object = Instantiate(historyData, new Vector3(0, f, 0), Quaternion.identity, scroll.content);
+            GameObject historyObj = Instantiate(historyData, new Vector3(0, f, 0), Quaternion.identity, scroll.content);
 
-            Text[] historyArr = Object.GetComponentsInChildren<Text>();
+            // 상세조회 버튼
+            historyObj.GetComponent<Button>().onClick.AddListener(delegate () { clickList(pair["res_code"].ToString()); });
+            historyObj.GetComponentsInChildren<Button>()[1].onClick.AddListener(delegate () { clickNavi(pair["res_lon"].ToString(), pair["res_lat"].ToString()); });
+            list.Add(historyObj);
+
+            Text[] historyArr = historyObj.GetComponentsInChildren<Text>();
 
             historyArr[0].text = num.ToString();
             historyArr[1].text = pair["res_name"].ToString();
@@ -137,7 +143,6 @@ public class UserManager : MonoBehaviour
                 historyArr[4].text = "O";
             else
                 historyArr[4].text = "X";
-            historyArr[5].text = pair["res_code"].ToString();
             f -= 203.8f;
             num += 1;
             
@@ -148,6 +153,20 @@ public class UserManager : MonoBehaviour
 
 
 
+    }
+
+    public Button btn;
+
+    public void clickList(string id)
+    {
+        Debug.Log(id);
+
+        
+    }
+
+    public void clickNavi(string lon, string lat)
+    {
+        Debug.Log(lon + lat);
     }
 
     public void goBackMain()

@@ -54,6 +54,16 @@ public class UserManager : MonoBehaviour
         UnMatchChangeError.SetActive(false);
         MyHistory.SetActive(false);
 
+
+
+        var pairs = new Dictionary<string, string>();
+        pairs["url"] = "1" + "/history"; //나중에 유저 id로 바꾸기
+        pairs["method"] = "GET";
+
+        IEnumerator enumerator = handleZzimInfo(pairs);
+
+        StartCoroutine(enumerator);
+
         Debug.Log("세션"+PlayerPrefs.GetString("ID"));
 
     }
@@ -78,40 +88,65 @@ public class UserManager : MonoBehaviour
 
         MyHistory.SetActive(true);
 
+
+
+        //var pairs = new Dictionary<string, string>();
+        //pairs["url"] = "1" + "/history";
+        //pairs["method"] = "GET";
+
+        //IEnumerator enumerator = handleZzimInfo(pairs);
+
+        //StartCoroutine(enumerator);
+
+
+    }
+
+    private IEnumerator handleZzimInfo(Dictionary<string, string> pairs)
+    {
+
+        Debug.Log("서버로 변경내용 전송");
+        flagWakeUp = false;
+        eventHandler.onClick(this, serverManager.SendRequest(pairs), EventHandler.HandlingType.Default);
+        Debug.Log("핸들러 온클릭");
+        while (!flagWakeUp)
+            yield return new WaitForSeconds(1.0f);
+        var check = eventHandler.result as JsonData;
         ScrollRect scroll = scrollView.GetComponent<ScrollRect>();
-        //navi = historyData.transform.Find("Image").GetComponent<Image>();
         float f = 200;
+        int num = 1;
 
-        //foreach (Text data in historyArr)
-        //{
-        //    var Object = Instantiate(historyData, new Vector3(0, f, 0), Quaternion.identity, scroll.content);
-        //    num++;
-        //    data.text = num.ToString();
-        //    historyArr[0].text = num.ToString();
-        //    historyArr[1].text = num.ToString();
-        //    historyArr[2].text = num.ToString();
-        //    historyArr[3].text = num.ToString();
-        //    historyArr[4].text = num.ToString();
-
-        //    f -= 203.8f;
-        //}
-
-        
-
-        for (int i = 0; i < num; i++)
+        foreach (JsonData pair in check["zzim_list"])
         {
+            //IDictionary i = pair;
+            //Debug.Log(pair["res_name"]);
+
+            //foreach (var k in i.Keys)
+            //{
+            //    Debug.Log(k);
+            //}
+
             var Object = Instantiate(historyData, new Vector3(0, f, 0), Quaternion.identity, scroll.content);
 
             Text[] historyArr = Object.GetComponentsInChildren<Text>();
 
-            historyArr[0].text = i.ToString();
-            historyArr[1].text = "원할머니보쌈 동대구역 본점";
-            historyArr[2].text = "2020/05/28";
-            historyArr[3].text = "23:54";
-            historyArr[4].text = i.ToString();
-           
+            historyArr[0].text = num.ToString();
+            historyArr[1].text = pair["res_name"].ToString();
+            historyArr[2].text = pair["pup_regdate"].ToString();
+            historyArr[3].text = pair["pup_regtime"].ToString();
+            if(pair["pup_zzim"].ToString() == "1")
+                historyArr[4].text = "O";
+            else
+                historyArr[4].text = "X";
+            historyArr[5].text = pair["res_code"].ToString();
             f -= 203.8f;
+            num += 1;
+            
         }
+
+        
+
+
+
 
     }
 

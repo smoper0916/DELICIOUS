@@ -46,6 +46,7 @@ public class DetailedRestaurantManager : MonoBehaviour
     bool isEmptyReview = false;
     bool isEmptyPhoto = false;
 
+    public static AnchorManager.State previous;
 
     GameObject target;
     TextMesh[] textMeshs;
@@ -547,7 +548,7 @@ public class DetailedRestaurantManager : MonoBehaviour
 
         RawImage[] photos = photoRect.content.GetComponentsInChildren<RawImage>();
 
-        AnchorManager.currentState = AnchorManager.State.Browse;
+        AnchorManager.currentState = previous;
         menuCheck = false; isEmptyMenu = false; onMenuCoroutine = false;
         reviewCheck = false; isEmptyReview = false; onReviewCoroutine = false;
         photoCheck = false; isEmptyPhoto = false; onPhotoCoroutine = false;

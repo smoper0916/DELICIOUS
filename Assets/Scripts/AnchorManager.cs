@@ -37,7 +37,7 @@ public class AnchorManager : MonoBehaviour
     public List<GameObject> zzimObjList = new List<GameObject>();
 
     public enum ZzimEventType { DELETE, GO, DETAIL}
-    public enum State { Browse, Detail, Navigation, Zzim }
+    public enum State { Browse, Detail, Navigation, Zzim, History, MyInfo }
     public static State currentState;
     public State previousState;
 
@@ -114,6 +114,36 @@ public class AnchorManager : MonoBehaviour
                 foreach (var i in gameObjects)
                     i.SetActive(false);
             }
+            else if (previousState == State.Browse && currentState == State.Detail)
+            {
+                DetailedRestaurantManager.previous = State.Browse;
+                detailedRestaurantManager.SetActive(true);
+                showCheck = true;
+                canvas.SetActive(false);
+
+                foreach (var i in gameObjects)
+                    i.SetActive(false);
+            }
+            else if (previousState == State.Zzim && currentState == State.Detail)
+            {
+                DetailedRestaurantManager.previous = State.Zzim;
+                detailedRestaurantManager.SetActive(true);
+                showCheck = true;
+                canvas.SetActive(false);
+
+                foreach (GameObject i in zzimObjList)
+                    i.SetActive(false);
+            }
+            else if (previousState == State.Detail && currentState == State.Zzim)
+            {
+                foreach (GameObject i in zzimObjList)
+                    i.SetActive(true);
+            }
+            else
+            {
+                // 아직 잡지 못한 예외
+                ToastMaker.instance.ShowToast("Update: 상태 변화 불일치 중 예외 발생! = " + previousState + " => " + currentState);
+            }
         }
         previousState = currentState;
 
@@ -133,13 +163,6 @@ public class AnchorManager : MonoBehaviour
                 {
                     target = hit.collider.gameObject;
                     Debug.Log(target.transform.position);
-                    detailedRestaurantManager.SetActive(true);
-                    showCheck = true;
-                    canvas.SetActive(false);
-
-                    foreach(var i in gameObjects)
-                        i.SetActive(false);
-                    
                     currentState = State.Detail;
                 }
             }
@@ -310,6 +333,7 @@ public class AnchorManager : MonoBehaviour
                 break;
 
             case ZzimEventType.DETAIL:
+                currentState = State.Detail;
                 break;
 
             default:

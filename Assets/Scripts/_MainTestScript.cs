@@ -33,7 +33,7 @@ public class _MainTestScript : MonoBehaviour
         //cameraObj.transform.rotation = Quaternion.Euler(0, -Input.compass.trueHeading, 0);
         //cameraObj.transform.rotation = Quaternion.Euler(0, Input.compass.trueHeading, 0);
         //StartCoroutine(DoLoop());
-
+        
         //StartCoroutine(loadPhoto());
     }
 
@@ -41,12 +41,17 @@ public class _MainTestScript : MonoBehaviour
     void Update()
     {
         //target.transform.Rotate()
-        float dist = Vector3.Distance(mainCamera.transform.position, target.transform.position);
-        Debug.Log(dist);
+        
         //currentHeading = Quaternion.Euler(0, -Input.compass.trueHeading, 0);
 
         //cameraObj.transform.rotation = Quaternion.Slerp(cameraObj.transform.rotation,
            // currentHeading, Time.deltaTime * 3f);
+    }
+
+    public void onclick1()
+    {
+        float dist = Vector3.Distance(mainCamera.transform.position, target.transform.position);
+        Debug.Log(dist);
     }
 
     public IEnumerator DoLoop()

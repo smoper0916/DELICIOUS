@@ -13,6 +13,8 @@ public class Restaurant
     public string brief { get; private set; }
     public string category { get; private set; }
     public bool zzimCheck { get; set; }
+    public int rank { get; private set; }
+
     public Restaurant()
     {
         
@@ -32,6 +34,7 @@ public class Restaurant
         this.y = float.Parse(i["lat"].ToString());
         this.category = i["category"].ToString();
         this.rating = float.Parse(dict.Contains("rating") ? i["rating"].ToString() : "-1");
+        this.rank = int.Parse(dict.Contains("rank") ? i["rank"].ToString() : "-1");
         this.mood = dict.Contains("mood") ? i["mood"].ToString() : null;
         this.brief = dict.Contains("brief") ? i["brief"].ToString() : null;
         this.zzimCheck = false;

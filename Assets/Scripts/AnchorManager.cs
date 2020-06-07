@@ -231,6 +231,7 @@ public class AnchorManager : MonoBehaviour
         dic.Add("method", "GET");
         dic.Add("lat", gpsLat.ToString());
         dic.Add("lon", gpsLon.ToString());
+        dic.Add("email", Login.userId);
         dic.Add("radius", "1000");
 
         //IEnumerator sender = serverManager.SendRequest(dic);
@@ -341,6 +342,29 @@ public class AnchorManager : MonoBehaviour
         }
     }
 
+    public void OnClickZzimPanelButtons1(string id, string name, ZzimEventType eventType)
+    {
+        switch (eventType)
+        {
+            case ZzimEventType.DELETE:
+                ToastMaker.instance.ShowToast(name + "이 찜 목록에서 삭제되었습니다. ");
+                DetailedRestaurantManager.zzim.Remove(id);
+                ClearZzim();
+                StartCoroutine(HandlerZzim());
+                break;
+
+            case ZzimEventType.GO:
+                break;
+
+            case ZzimEventType.DETAIL:
+                ToastMaker.instance.ShowToast(id);
+                break;
+
+            default:
+                break;
+        }
+    }
+
     public IEnumerator HandlerZzim()
     {
         if (currentState == State.Browse)
@@ -381,7 +405,7 @@ public class AnchorManager : MonoBehaviour
 
                     zzimPanel = zzimObjList[i].transform.Find("ZzimPanel");
 
-                    zzimPanel.GetComponent<Button>().onClick.AddListener(delegate () { OnClickZzimPanelButtons(zzim[i].Key, zzim[i].Value.name, ZzimEventType.DETAIL); });
+                    zzimPanel.GetComponent<Button>().onClick.AddListener(delegate () { OnClickZzimPanelButtons1(zzim[i].Key, zzim[i].Value.name, ZzimEventType.DETAIL); });
 
                     txtComponents = zzimPanel.GetComponentsInChildren<Text>();
                     btnComponents = zzimPanel.GetComponentsInChildren<Button>();

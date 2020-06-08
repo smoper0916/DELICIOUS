@@ -72,7 +72,7 @@ public class GPSManager : MonoBehaviour
         //Loop forever to get GPS updates
         while (isRunning)
         {
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(1.0f);
             UpdateGPS();
         }
     }
@@ -84,7 +84,7 @@ public class GPSManager : MonoBehaviour
             latitude = Input.location.lastData.latitude.ToString();
             longitude = Input.location.lastData.longitude.ToString();
 
-            heading = -Input.compass.magneticHeading;
+            heading = Input.compass.trueHeading;
             headingAccuracy = Input.compass.headingAccuracy;
             ServiceStatus = Input.location.status;
 

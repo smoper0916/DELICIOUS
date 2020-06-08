@@ -18,6 +18,7 @@ public class NaviColider : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        ToastMaker.instance.ShowToast("충돌충돌!!!!");
         Debug.Log("충돌충돌충돌충돌충돌충돌충돌충돌");
         if (other.gameObject.tag == "wayPoint")
         {
@@ -27,11 +28,12 @@ public class NaviColider : MonoBehaviour
         else if (other.CompareTag("destination"))
         {
             Destroy(other.gameObject);
-           // arrow.SetActive(false);
+           //arrow.SetActive(false);
 
             //이력 등록
 
 
         }
+        ToastMaker.instance.ShowToast("충돌충돌2!!!!");
     }
 }

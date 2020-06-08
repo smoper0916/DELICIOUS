@@ -62,7 +62,7 @@ public class AnchorManager : MonoBehaviour
     void Draw()
     {
         List<Restaurant> resList = new List<Restaurant>(restaurants.Values);
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < resList.Count; i++)
         {
             Pose pose = new Pose(vectors[i], transform.rotation);
 
@@ -118,8 +118,9 @@ public class AnchorManager : MonoBehaviour
             else if (previousState == State.Browse && currentState == State.Detail)
             {
                 DetailedRestaurantManager.previous = State.Browse;
-                detailedRestaurantManager.SetActive(true);
                 showCheck = true;
+                detailedRestaurantManager.SetActive(true);
+                
                 canvas.SetActive(false);
 
                 foreach (var i in gameObjects)
@@ -267,7 +268,7 @@ public class AnchorManager : MonoBehaviour
             //heading = Quaternion.LookRotation(Camera.main.transform.TransformDirection(GPSManager.Instance.headingVector)).eulerAngles.y;
 
             
-            vector3 = Quaternion.AngleAxis((-GPSManager.Instance.heading)*2-360, Vector3.up) * vector3;
+            //vector3 = Quaternion.AngleAxis((-GPSManager.Instance., Vector3.up) * vector3;
 
             if (vector3.magnitude < 100.0f)
             {

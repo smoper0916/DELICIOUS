@@ -623,7 +623,18 @@ public class DetailedRestaurantManager : MonoBehaviour
 
     public void CreateNavi()
     {
-        NaviObject = Instantiate(NaviObject,Vector3.zero,Quaternion.identity, null);
-       Destroy(transform.gameObject);
+        // 목적지 설정
+        if (previous == AnchorManager.State.Browse)
+        {
+            NavigationManager.lon = AnchorManager.restaurants[id].x.ToString();
+            NavigationManager.lat = AnchorManager.restaurants[id].y.ToString();
+            NaviObject = Instantiate(NaviObject, Vector3.zero, Quaternion.identity, null);
+            Destroy(transform.gameObject);
+            AnchorManager.currentState = AnchorManager.State.Navigation;
+        }
+        else
+        {
+            ToastMaker.instance.ShowToast("아직 지원하지 않습니다.");
+        }
     }
 }

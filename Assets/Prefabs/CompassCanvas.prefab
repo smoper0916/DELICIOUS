@@ -162,7 +162,6 @@ GameObject:
   - component: {fileID: 6499406315773123098}
   - component: {fileID: 6499406315773123093}
   - component: {fileID: 6499406315773123092}
-  - component: {fileID: 6499406315773123099}
   m_Layer: 5
   m_Name: TotalPanel
   m_TagString: Untagged
@@ -253,23 +252,6 @@ MonoBehaviour:
   m_ChildControlHeight: 0
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
---- !u!114 &6499406315773123099
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6499406315773123094}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8711ed9baf19c8b42a03426deb61fbf7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  image: {fileID: 6499406314784373888}
-  angleText: {fileID: 6499406315842923047}
-  guideText: {fileID: 6499406314811362325}
-  isDone: 0
-  isGoodDegree: 0
 --- !u!1 &6499406315842923041
 GameObject:
   m_ObjectHideFlags: 0
@@ -359,6 +341,7 @@ GameObject:
   - component: {fileID: 6499406316330476337}
   - component: {fileID: 6499406316330476336}
   - component: {fileID: 6499406316330476339}
+  - component: {fileID: 4961397282888781776}
   m_Layer: 5
   m_Name: CompassCanvas
   m_TagString: Untagged
@@ -446,3 +429,20 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &4961397282888781776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6499406316330476338}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8711ed9baf19c8b42a03426deb61fbf7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  image: {fileID: 6499406314784373888}
+  angleText: {fileID: 6499406315842923047}
+  guideText: {fileID: 6499406314811362325}
+  isDone: 0
+  isGoodDegree: 0

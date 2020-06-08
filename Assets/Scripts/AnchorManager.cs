@@ -223,11 +223,11 @@ public class AnchorManager : MonoBehaviour
         degreesLongitudeInMetersAtEquator = 111319.9f;
 
         //Real GPS Position - This will be the world origin.
-        var gpsLat = "36.1380077";
-        var gpsLon = "128.4166394";
+        //var gpsLat = "36.1380077";
+        //var gpsLon = "128.4166394";
 
-        //var gpsLat = GPSManager.Instance.latitude;
-        //var gpsLon = GPSManager.Instance.longitude;
+        var gpsLat = GPSManager.Instance.latitude;
+        var gpsLon = GPSManager.Instance.longitude;
 
         dic.Add("url", "restaurants/near");
         dic.Add("method", "GET");
@@ -246,21 +246,28 @@ public class AnchorManager : MonoBehaviour
 
         Debug.Log("Count : " + restaurants.Count);
         // GPS position converted into unity coordinates
+
+        ToastMaker.instance.ShowToast("Heading : " + GPSManager.Instance.heading);
         foreach (string k in restaurants.Keys)
         {
             Restaurant restaurant = restaurants[k];
-            var latOffset = (float)(restaurant.y - Double.Parse(gpsLat)) * degreesLatitudeInMeters;
-            var lonOffset = (float)(restaurant.x - Double.Parse(gpsLon)) * GetLongitudeDegreeDistance(restaurant.y);
+            var latOffset = (float)(restaurant.y - double.Parse(gpsLat)) * degreesLatitudeInMeters;
+            var lonOffset = (float)(restaurant.x - double.Parse(gpsLon)) * GetLongitudeDegreeDistance(restaurant.x);
+
+            Debug.Log("latOffset : " + latOffset);
+            Debug.Log("lonOffset : " + lonOffset);
+            Debug.Log("=============");
 
             Vector3 vector3 = new Vector3(latOffset, 0, lonOffset);
 
             Debug.Log(vector3.magnitude);
 
-            Debug.Log(GPSManager.Instance.heading);
+            Debug.Log(-GPSManager.Instance.heading);
 
             //heading = Quaternion.LookRotation(Camera.main.transform.TransformDirection(GPSManager.Instance.headingVector)).eulerAngles.y;
 
-            vector3 = Quaternion.AngleAxis(GPSManager.Instance.heading, Vector3.up) * vector3;
+            
+            vector3 = Quaternion.AngleAxis((-GPSManager.Instance.heading)*2-360, Vector3.up) * vector3;
 
             if (vector3.magnitude < 100.0f)
             {

@@ -49,3 +49,5 @@ MonoBehaviour:
     type: 3}
   Destination: {fileID: 3266837328957122465, guid: f5dd61c1b6d72ea46ab0f48f5a5f9f05,
     type: 3}
+  compassMoverData: {fileID: 6499406316330476338, guid: 2b29d3010344f5743841b84e558ea447,
+    type: 3}

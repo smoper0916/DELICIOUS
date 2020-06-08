@@ -22,6 +22,7 @@ public class NavigationManager : MonoBehaviour
 
     GpsCalc GpsCalc = new GpsCalc();
 
+    public GameObject compassMoverData;
     public static GameObject target;
     GameObject arrow;
     GameObject wayPoint;
@@ -42,6 +43,50 @@ public class NavigationManager : MonoBehaviour
     //public GameObject loadingBar;
     private void Start()
     {
+        StartCoroutine(initProcess());
+    }
+
+    void Update()
+    {
+        if (flagCreate)
+        {
+            if (checkWayPoint == false || wayPointsGameObject[idx] == null)
+            {
+                checkWayPoint = true;
+                wayPointsGameObject[idx].SetActive(true);
+                ToastMaker.instance.ShowToast("그려지나?");
+                if (idx != vectors.Count - 2)
+                    idx++;
+
+                //Debug.Log(idx);
+                //Debug.Log(wayPointsGameObject[idx].gameObject.tag);
+
+                //wayPoint.transform.localScale = new Vector3(7, 7, 0);
+            }
+
+
+            //Debug.Log(Vector3.SignedAngle(transform.up, arrow.transform.forward - Camera.main.transform.forward, -transform.forward));
+
+            //Debug.Log(arrow.transform.position);
+            //arrow.transform.rotation = Quaternion.AngleAxis(270, Vector3.up);
+            //arrow.transform.position = new Vector3(transform.parent.position.x, transform.parent.position.y - 0.2f, transform.parent.position.z + 0.5f);
+            arrow.transform.LookAt(wayPointsGameObject[idx].transform.position);
+        }
+
+
+    }
+
+    private IEnumerator initProcess()
+    {
+        GameObject compassMover = Instantiate(compassMoverData, null);
+        CompassMover mover = compassMover.GetComponent<CompassMover>();
+
+        // 좋은 각도가 나올때까지 대기.
+        while (mover.isGoodDegree)
+            yield return new WaitForSeconds(0.1f);
+        // mover 삭제
+        mover.isDone = true;
+
         foreach (var g in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
         {
             if (g.name == "EventHandler")
@@ -56,56 +101,20 @@ public class NavigationManager : MonoBehaviour
 
         Debug.Log(Camera.main.transform.position);
 
-        arrow = Instantiate(NavPrefab, new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y - 0.55f, Camera.main.transform.position.z + 0.3f) , NavPrefab.transform.rotation, Camera.main.transform);
+        arrow = Instantiate(NavPrefab, new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y - 0.55f, Camera.main.transform.position.z + 0.25f), NavPrefab.transform.rotation, Camera.main.transform);
         //InvokeRepeating("CheckDegree", 5, 5);
         InvokeRepeating("CheckDistance", 7.0f, 0.5f);
     }
-
-    void Update()
-    {
-        try
-        {
-            if (flagCreate)
-            {
-                if (checkWayPoint == false || wayPointsGameObject[idx] == null)
-                {
-                    checkWayPoint = true;
-                    wayPointsGameObject[idx].SetActive(true);
-                    if (idx != vectors.Count - 2)
-                        idx++;
-
-                    //Debug.Log(idx);
-                    //Debug.Log(wayPointsGameObject[idx].gameObject.tag);
-
-                    //wayPoint.transform.localScale = new Vector3(7, 7, 0);
-                }
-
-
-                //Debug.Log(Vector3.SignedAngle(transform.up, arrow.transform.forward - Camera.main.transform.forward, -transform.forward));
-
-                //Debug.Log(arrow.transform.position);
-                //arrow.transform.rotation = Quaternion.AngleAxis(270, Vector3.up);
-                //arrow.transform.position = new Vector3(transform.parent.position.x, transform.parent.position.y - 0.2f, transform.parent.position.z + 0.5f);
-                arrow.transform.LookAt(wayPointsGameObject[idx].transform.position);
-            }
-        }
-        catch(Exception e)
-        {
-            ToastMaker.instance.ShowToast(e.ToString());
-            ToastMaker.instance.ShowToast(e.StackTrace);
-        }
-    }
-
 
     private void CheckDistance()
     {
         var distance = GpsCalc.distance(double.Parse(GPSManager.Instance.latitude), double.Parse(GPSManager.Instance.longitude), double.Parse(wayPoints[idx].lat), double.Parse(wayPoints[idx].lon));
         if (dis[idx] * 0.2f >= distance)
         {
-            checkWayPoint = true;
-            wayPointsGameObject[idx].SetActive(false);
             if (idx != vectors.Count - 2)
                 idx++;
+            checkWayPoint = false;
+            wayPointsGameObject[idx].SetActive(false);
         }
     }
 
@@ -144,20 +153,20 @@ public class NavigationManager : MonoBehaviour
 
         //Debug.Log(GPSManager.Instance.heading);
 
-        ToastMaker.instance.ShowToast("WayP 길이 : " + wayPoints.Count);
+        //ToastMaker.instance.ShowToast("WayP 길이 : " + wayPoints.Count);
         Debug.Log("WayP 길이 : " + wayPoints.Count);
 
         foreach (WayPoint wayPoint in wayPoints)
         {
-            var distance = GpsCalc.distance(double.Parse(gpsLat), double.Parse(gpsLon), double.Parse(wayPoint.lat),double.Parse(wayPoint.lon));
+            var distance = GpsCalc.distance(double.Parse(gpsLat), double.Parse(gpsLon), double.Parse(wayPoint.lat), double.Parse(wayPoint.lon));
 
             dis.Add(distance);
 
             Debug.Log(string.Format("{0},{1}", wayPoint.lat, wayPoint.lon));
-            ToastMaker.instance.ShowToast(string.Format("{0},{1}", wayPoint.lat, wayPoint.lon));
+            //ToastMaker.instance.ShowToast(string.Format("{0},{1}", wayPoint.lat, wayPoint.lon));
 
             var latOffset = (double.Parse(wayPoint.lat) - double.Parse(gpsLat) * degreesLatitudeInMeters);
-            var lonOffset = (double.Parse(wayPoint.lon) - double.Parse(gpsLon) * GetLongitudeDegreeDistance(float.Parse(wayPoint.lat)));
+            var lonOffset = (double.Parse(wayPoint.lon) - double.Parse(gpsLon) * GetLongitudeDegreeDistance(float.Parse(wayPoint.lon)));
 
             Vector3 vector3 = new Vector3((float)latOffset, 0, (float)lonOffset);
 
@@ -207,34 +216,23 @@ public class NavigationManager : MonoBehaviour
 
     public void DrawCheckPoint()
     {
-        try
-        {
-            for (int i = 0; i < anchors.Count - 2; i++)
-            {
-                ToastMaker.instance.ShowToast("전 1");
-                wayPoint = Instantiate(WayPrefab, anchors[i].transform.position, WayPrefab.transform.rotation, anchors[i].transform);
-                ToastMaker.instance.ShowToast("전 2");
-                wayPoint.transform.LookAt(vectors[i + 1]);
-                ToastMaker.instance.ShowToast("전 3");
-                wayPointsGameObject.Add(wayPoint);
 
-                wayPoint.SetActive(false);
-            }
-            ToastMaker.instance.ShowToast("전 4");
-            Vector3 point = new Vector3(anchors[anchors.Count - 1].transform.position.x, anchors[anchors.Count - 1].transform.position.y + 0.25f, anchors[anchors.Count - 1].transform.position.z);
-            ToastMaker.instance.ShowToast("전 5");
-            wayPoint = Instantiate(Destination, point, Destination.transform.rotation, anchors[anchors.Count - 1].transform);
-            ToastMaker.instance.ShowToast("전 6");
+
+        for (int i = 0; i < anchors.Count - 2; i++)
+        {
+            wayPoint = Instantiate(WayPrefab, anchors[i].transform.position, WayPrefab.transform.rotation, anchors[i].transform);
+            wayPoint.transform.LookAt(vectors[i + 1]);
             wayPointsGameObject.Add(wayPoint);
-            wayPoint.SetActive(false);
 
-            flagCreate = true;
+            wayPoint.SetActive(false);
         }
-        catch(Exception e)
-        {
-            ToastMaker.instance.ShowToast(e.ToString());
-            ToastMaker.instance.ShowToast(e.StackTrace);
-        }
+        Vector3 point = new Vector3(anchors[anchors.Count - 1].transform.position.x, anchors[anchors.Count - 1].transform.position.y + 0.25f, anchors[anchors.Count - 1].transform.position.z);
+        wayPoint = Instantiate(Destination, point, Destination.transform.rotation, anchors[anchors.Count - 1].transform);
+        wayPointsGameObject.Add(wayPoint);
+        wayPoint.SetActive(false);
+
+        flagCreate = true;
+
     }
     private float GetLongitudeDegreeDistance(float latitude)
     {
@@ -267,7 +265,7 @@ public class NavigationManager : MonoBehaviour
         if (degree > 80.0f || degree < -80.0f)
         {
             Debug.Log(idx);
-            
+
             wayPointsGameObject[idx].SetActive(false);
 
             idx++;
@@ -276,7 +274,7 @@ public class NavigationManager : MonoBehaviour
 
 
             ToastMaker.instance.ShowToast("Next CheckPoint");
-            
+
         }
     }
 }

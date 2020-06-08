@@ -25,6 +25,7 @@ public class AnchorManager : MonoBehaviour
     public static GameObject target;
     public static bool showCheck = false;
     public GameObject detailedRestaurantManager;
+    public GameObject compassMoverData;
 
     float degreesLongitudeInMetersAtEquator;
     private bool flagWakeUp = false;
@@ -216,7 +217,7 @@ public class AnchorManager : MonoBehaviour
         }
 
         loadingManager.state = "서버로부터 주변 식당 정보 받는 중...";
-        loadingManager.step = 90f;
+        loadingManager.step = 60f;
         loadingManager.ToggleUpdateFlag();
 
         // Conversion factors
@@ -247,6 +248,18 @@ public class AnchorManager : MonoBehaviour
 
         Debug.Log("Count : " + restaurants.Count);
         // GPS position converted into unity coordinates
+
+        GameObject compassMover = Instantiate(compassMoverData, null);
+        CompassMover mover = compassMover.GetComponent<CompassMover>();
+
+
+        loadingBar.SetActive(false);
+        // 좋은 각도가 나올때까지 대기.
+        while (!mover.isGoodDegree)
+            yield return new WaitForSeconds(0.1f);
+        // mover 삭제
+        mover.isDone = true;
+        loadingBar.SetActive(true);
 
         ToastMaker.instance.ShowToast("Heading : " + GPSManager.Instance.heading);
         foreach (string k in restaurants.Keys)

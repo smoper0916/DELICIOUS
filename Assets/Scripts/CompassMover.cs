@@ -76,7 +76,8 @@ public class CompassMover : MonoBehaviour
 
             rotationToNorth = Mathf.LerpAngle(rotationToNorth, GPSManager.Instance.heading, 0.1f);
             // 나침반에 대해 실시간 변경
-            var heading = (int)(rotationToNorth);
+            //var heading = (int)(rotationToNorth);
+            var heading = reading;
             image.transform.rotation = Quaternion.Euler(0, 0, heading);
             angleText.text = heading.ToString();
 

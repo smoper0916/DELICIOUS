@@ -1072,6 +1072,8 @@ MonoBehaviour:
   anchoredPrefab: {fileID: 3395460497252656247, guid: 2ffb3d307f1f23240a5e093a67d56ead,
     type: 3}
   detailedRestaurantManager: {fileID: 2011856824}
+  compassMoverData: {fileID: 6499406316330476338, guid: 2b29d3010344f5743841b84e558ea447,
+    type: 3}
   canvas: {fileID: 1182936439}
   loadingBar: {fileID: 1418296410}
   zzimData: {fileID: 2697718086182272741, guid: 1a5bb2f3125471e42887e9a9009bc2af,

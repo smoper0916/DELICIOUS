@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using GoogleARCore;
 using UnityEngine;
 using UnityEngine.UI;
-
+using GPSLogger;
 public class AnchorManager : MonoBehaviour
 {
     public EventHandler eventHandler;
@@ -30,6 +30,8 @@ public class AnchorManager : MonoBehaviour
     float degreesLongitudeInMetersAtEquator;
     private bool flagWakeUp = false;
     private bool flagCreate = false;
+
+    GpsCalc gpsCalc = new GpsCalc();
 
     public GameObject canvas;
     public GameObject loadingBar;
@@ -272,15 +274,18 @@ public class AnchorManager : MonoBehaviour
             Debug.Log("lonOffset : " + lonOffset);
             Debug.Log("=============");
 
+            //var distance = gpsCalc.distance(float.Parse(gpsLat), float.Parse(gpsLon), restaurant.y, restaurant.x);
+            //var degree = gpsCalc.bearingP1toP2(float.Parse(gpsLat), float.Parse(gpsLon), restaurant.y, restaurant.x);
             Vector3 vector3 = new Vector3(latOffset, 0, lonOffset);
 
-            Debug.Log(vector3.magnitude);
+            //Vector3 vector3 = Vector3.forward * (float)distance;
 
-            Debug.Log(-GPSManager.Instance.heading);
+            //Quaternion qRotate = Quaternion.Euler(0f, degree-180, 0f);
+            //vector3 = qRotate * vector3;
 
             //heading = Quaternion.LookRotation(Camera.main.transform.TransformDirection(GPSManager.Instance.headingVector)).eulerAngles.y;
 
-            
+
             //vector3 = Quaternion.AngleAxis((-GPSManager.Instance., Vector3.up) * vector3;
 
             if (vector3.magnitude < 100.0f)

@@ -264,39 +264,39 @@ public class AnchorManager : MonoBehaviour
 
             if (vector3.magnitude < 100.0f)
             {
-                vector3 = new Vector3(latOffset, -20.0f, lonOffset);
+                vector3.y = -20.0f;
             }
             else if (vector3.magnitude < 150.0f)
             {
-                vector3 = new Vector3(latOffset, 10f, lonOffset);
+                vector3.y = 10.0f;
             }
             else if (vector3.magnitude < 200.0f)
             {
-                vector3 = new Vector3(latOffset, 40.0f, lonOffset);
+                vector3.y = 40.0f;
             }
             else if (vector3.magnitude < 250.0f)
             {
-                vector3 = new Vector3(latOffset, 90.0f, lonOffset);
+                vector3.y = 90.0f;
             }
             else if (vector3.magnitude < 300.0f)
             {
-                vector3 = new Vector3(latOffset, 150.0f, lonOffset);
+                vector3.y = 150.0f;
             }
             else if (vector3.magnitude < 350.0f)
             {
-                vector3 = new Vector3(latOffset, 220.0f, lonOffset);
+                vector3.y = 220.0f;
             }
             else if (vector3.magnitude < 400.0f)
             {
-                vector3 = new Vector3(latOffset, 310.0f, lonOffset);
+                vector3.y = 310.0f;
             }
             else if (vector3.magnitude < 450.0f)
             {
-                vector3 = new Vector3(latOffset, 380.0f, lonOffset);
+                vector3.y = 380.0f;
             }
             else
             {
-                vector3 = new Vector3(latOffset, 460.0f, lonOffset);
+                vector3.y = 460.0f;
             }
 
             Debug.Log(vector3);

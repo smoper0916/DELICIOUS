@@ -66,12 +66,40 @@ def browse_restaurants():
 
     # 네이버 플레이스 파싱
     start = time.time()
-    result_dict['restaurants'] = n_scraper.scrape_place(lon, lat, radius)
+    result_dict['restaurants'] = n_scraper.scrape_place_(lon, lat, radius)
 
     print("속도 : ", time.time() - start)
 
     return jsonify(result_dict) #string 타입을 json형식으로 볼수있는 함수
 
+@app.route(get_fullpath('/restaurants/near2'), methods=['GET'])
+def browse_restaurants2():
+    '''
+    BROWSE RESTAURANTS API
+    GPS 좌표 기반으로 주변의 식당 정보 제공
+    x: 경도 (그리니치 천문대 기준 동경 130도 정도)
+    y: 위도 (적도 기준 북위 35~36도 정도)
+    radius: 반경(m)
+    :return: JSON 형태의 식당 리스트
+    '''
+
+    result_dict = {}
+
+    # POST 데이터를 받기 위해 request.form을 사용
+    # string으로 전송하는 값은 float으로 변환.
+    lon = float(request.args.get('lon'))
+    lat = float(request.args.get('lat'))
+    radius = int(request.args.get('radius'))
+    email = request.args.get('email')
+
+    # 네이버 플레이스 파싱
+    start = time.time()
+    print("lon : %f, lat : %f, radius : %d, email : %s" %(lon, lat, radius, email))
+    result_dict['restaurants'] = n_scraper.scrape_place(lon, lat, radius, email=1)
+
+    print("속도 : ", time.time() - start)
+
+    return jsonify(result_dict) #string 타입을 json형식으로 볼수있는 함수
 
 @app.route(get_fullpath('/restaurant/<id>/menu'), methods=['GET'])
 def get_menu(id):
@@ -132,6 +160,7 @@ def get_user(usr_email):
 
 
 @app.route(get_fullpath('/<usr_email>/profile'), methods=['POST'])
+@app.route(get_fullpath('/<int:usr_email>/profile'), methods=['POST'])
 def create_user(usr_email):
     #db_conn = db.DBConnector(host=host_info[2], user=host_info[3], password=host_info[4], db=host_info[5])
     ####### 중복 확인해서 미리 거르는 코드
@@ -292,14 +321,16 @@ def get_route():
 # 찜 이력 조회
 @app.route(get_fullpath('/<usr_email>/history'), methods=['GET'])
 def list(usr_email):
-    query = "SELECT res.res_name, pup.pup_regdate, pup.pup_regtime, pup.pup_zzim " \
+    query = "SELECT res.res_code, res.res_name, pup.pup_regdate, pup.pup_regtime, pup.pup_zzim, res_lon, res_lat " \
             "FROM pickupres as pup, user as user, resturant as res " \
-            "WHERE pup.usr_code = user.usr_code and pup.res_code = res.res_code and user.usr_email = %s"
+            "WHERE pup.usr_code = user.usr_code and pup.res_code = res.res_code and user.usr_email = %s " \
+            "ORDER BY pup.pup_regdate DESC, pup.pup_regtime DESC"
     parameter = (usr_email,)
     result = db_conn.execute_all(query, parameter)
     print(type(result))
 
     return jsonify({"zzim_list" : result})
+    ## 좌표, 삽입
 
 @app.route(get_fullpath('/<usr_email>/history'), methods=['PUT'])
 def update_list(usr_email):
@@ -321,6 +352,19 @@ def update_list(usr_email):
     return jsonify({"zzim_list" : result})
 
 
+
+
+    # print(rank_check)
+    # for i in range(len(rank)):
+    #     if rank[i] == max(rank):
+    #         result[0] = rank[i]
+
+
+
+
+
+
+    return jsonify({"zzim_info" : result})
 
 
 

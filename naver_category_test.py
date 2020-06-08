@@ -38,7 +38,6 @@ radius = 500
 for i in range(100):
     rd = browse_restaurants(slon, slat, radius)
     slon = round(slon + GeoUtil.lon_delta * radius, 6)
-    # slat = round(slat + GeoUtil.lat_delta * radius, 6)
 
     duplicate_check_query = "SELECT * FROM restaurants WHERE no = %s"
 

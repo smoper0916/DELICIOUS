@@ -87,8 +87,11 @@ class NaverScraper:
         yield info_dict
 
         second_time = time.time()
+
         try:
             tab02 = driver.find_element_by_id('tab02')
+            if tab02.get_attribute('aria-label') != '가격':
+                raise NoSuchElementException()
         except NoSuchElementException as e:
             return iter([])
         driver.find_element_by_id('tab02').send_keys(Keys.ENTER)
@@ -98,7 +101,10 @@ class NaverScraper:
 
         soup2_time = time.time()
         list_item = soup.find("div", {"class": "tab_detail_area"}).findAll("a", {"class": "list_item"})
-
+        is_li_tag = False
+        if len(list_item) < 1:
+            list_item = soup.find("div", {"class": "tab_detail_area"}).findAll("li", {"class": "list_item"})
+            is_li_tag = True
         list_time = time.time()
         menu_result = []
         for l in list_item:
@@ -110,8 +116,9 @@ class NaverScraper:
                     menu_item['img'] = child.contents[0].contents[0].attrs['src']
                 elif child.attrs['class'][0] == 'info_area':
                     # 정보 블록 가져오기
-                    menu_item['name'] = child.contents[0].contents[0]
-                    menu_item['price'] = child.contents[1].text
+                    if len(child.contents) > 1:
+                        menu_item['name'] = child.contents[1].text if is_li_tag else child.contents[0].contents[0]
+                        menu_item['price'] = child.contents[0].text if is_li_tag else child.contents[1].text
                 else:
                     pass
             menu_result.append(menu_item)
@@ -237,7 +244,7 @@ class NaverScraper:
             return avg_score
         return review_array, avg_score, total
 
-    def scrape_place(self, lon, lat, radius):
+    def scrape_place_(self, lon, lat, radius):
         bounds_arr = GeoUtil.get_bounds(lon, lat, radius)
         url = "https://store.naver.com/restaurants/list?bounds=" + str(bounds_arr[0]) + "%3B" + str(
             bounds_arr[1]) + "%3B" + str(bounds_arr[2]) + "%3B" + str(bounds_arr[3]) + "&query=%EB%A7%9B%EC%A7%91"
@@ -341,6 +348,7 @@ class NaverScraper:
                 score = _sum / total_num
                 break
             response = requests.get("https://store.naver.com/restaurants/detail?entry=plt&id=%s&tab=receiptReview&tabPage=%s" % (str(num), str(tab_page_num)))
+            time.sleep(1.5)
             html = response.text
             soup = BeautifulSoup(html, 'html.parser')
             if tab_page_num is 0:
@@ -375,6 +383,7 @@ class NaverScraper:
 
     def get_menu(self, num):
         response = requests.get("https://store.naver.com/restaurants/detail?entry=plt&id=%s&tab=receiptReview&tabPage=0" % str(num))
+        time.sleep(1.5)
         html = response.text
         soup = BeautifulSoup(html, 'html.parser')
         result_name = soup.select('div.menu > span.name')
@@ -413,19 +422,39 @@ class NaverScraper:
         for i in range(len(arr)):
             executor.submit(self.thread_func(arr[i]))
 
+    def zzim(self, usr_email):
+        #db_conn = db.DBConnector(host=host_info[2], user=host_info[3], password=host_info[4], db=host_info[5])
 
-    def scrape_place2(self, lon, lat, radius):
+        query = 'SELECT res_category, COUNT(*) as cnt FROM (SELECT * FROM pickupres WHERE usr_code = (SELECT usr_code FROM user WHERE usr_email = %s) ORDER BY pup_regdate DESC, pup_regtime DESC LIMIT 20) AS p JOIN resturant AS r ON p.res_code = r.res_code group by res_category ORDER BY cnt DESC'
+        #query = 'SELECT res_category, COUNT(*) FROM (SELECT * FROM pickupres WHERE usr_code = (SELECT usr_code FROM user WHERE usr_email = "1") ORDER BY pup_regdate DESC, pup_regtime DESC LIMIT 10) AS p JOIN resturant AS r ON p.res_code = r.res_code group by res_category;'
+        parameter = (usr_email,)
+        result = object.execute_all(query, parameter)
+
+        print(result)
+        recommends = []
+        if len(result) <= 4:
+            for i in range(len(result)):
+                recommends.append(result[i]["res_category"])
+        else:
+            for i in range(0, 4):
+                recommends.append(result[i]["res_category"])
+        print(recommends)
+
+        return recommends
+
+
+    def enter_naver(self, lon, lat, radius, email):
         bounds_arr = GeoUtil.get_bounds(lon, lat, radius)
         url = "https://store.naver.com/restaurants/list?bounds=" + str(bounds_arr[0]) + "%3B" + str(
             bounds_arr[1]) + "%3B" + str(bounds_arr[2]) + "%3B" + str(bounds_arr[3]) + "&query=%EB%A7%9B%EC%A7%91"
-        #print(url)
+        # print(url)
         response = requests.get(url)
         html = response.text
 
         restaurants = []  # 분위기별 모든 식당이름을 저장 추후 id로 변경해야함
         r_ids = []  # id만 모은 배열
 
-        start_str = 'window.PLACE_STATE=';
+        start_str = 'window.PLACE_STATE='
         end_str = '}</script>'
         parsing_source = html[html.find(start_str) + len(start_str):html.find(end_str) + 1]
 
@@ -433,29 +462,18 @@ class NaverScraper:
         review = self.scrape_review_score
 
         # test용
-        #from common_utils import APIKeyLoader
+        # from common_utils import APIKeyLoader
         start_time = time.time()
         find_arr = []
         for i in dict['businesses'].keys():
             if i.startswith('[bounds:'):
                 for j in dict['businesses'][i]['items']:
                     if j is not None and 'businessCategory' in j and j['businessCategory'] == 'restaurant':
-                        # 중복체크 구문
-                        query = "SELECT big_category FROM category_definition WHERE category = %s"
-                        parameter = (j["category"], )
-                        number = object.execute_one(query, parameter)
-
-                        # 없는 카테고리인 경우 추가로 삽입한다.
-                        if number is None:
-                            query = "INSERT INTO category_definition (category, big_category) VALUES (%s, %s)"
-                            parameter = (j['category'], 0)
-                            object.execute(query, parameter)
-                            object.commit()
-
                         res_code = j["id"]
                         res_name = j["name"]
                         res_category = j["category"]
-
+                        res_lon = j['x']
+                        res_lat = j['y']
                         ## DB Insert
                         query = "SELECT * FROM resturant as res WHERE res.res_code = %s"
                         parameter = (j["id"],)
@@ -463,9 +481,9 @@ class NaverScraper:
 
                         # 신규라면
                         if len(result) == 0:
-                            query = "INSERT INTO resturant (res_code, res_name, res_category) VALUES (%s, %s, %s)"
-                            parameter = (res_code, res_name, str(number["big_category"] if number is not None else 0))
-                            #print("%s %s %s" % (res_code, res_name, res_category))
+                            query = "INSERT INTO resturant (res_code, res_name, res_category, res_lon, res_lat) VALUES (%s, %s, %s, %s, %s)"
+                            parameter = (res_code, res_name, res_category, res_lon, res_lat)
+                            # print("%s %s %s" % (res_code, res_name, res_category))
                             object.execute(query, parameter)
                             object.commit()
                             ########################### multithread
@@ -484,14 +502,217 @@ class NaverScraper:
 
         print("adjust : %d seconds" % (end_time - start_time))
 
-
-        #self.func(find_arr)
-        print(find_arr)
         if len(find_arr) > 0:
             self.process_thread(find_arr)
+        #return restaurants, find_arr
+
+    def enter_naver2(self, lon, lat, radius, target_category, index, origin_arr):
+        print(origin_arr)
+        bounds_arr = GeoUtil.get_bounds(lon, lat, radius)
+
+        #convert_str = target_category.encode('UTF-8')
+        url = "https://store.naver.com/restaurants/list?bounds=" + str(bounds_arr[0]) + "%3B" + str(
+            bounds_arr[1]) + "%3B" + str(bounds_arr[2]) + "%3B" + str(bounds_arr[3]) + "&query=%s" % target_category
+
+        #print("after : " + target_category.encode('UTF-8'))
+        print(url)
+        response = requests.get(url)
+        time.sleep(1.5)
+        html = response.text
+
+        restaurants = []  # 분위기별 모든 식당이름을 저장 추후 id로 변경해야함
+        r_ids = []  # id만 모은 배열
+
+        start_str = 'window.PLACE_STATE='
+        end_str = '}</script>'
+        parsing_source = html[html.find(start_str) + len(start_str):html.find(end_str) + 1]
+
+        dict = json.loads(parsing_source)
+        review = self.scrape_review_score
+
+        # test용
+        # from common_utils import APIKeyLoader
+        start_time = time.time()
+        find_arr = []
+        for i in dict['businesses'].keys():
+            if i.startswith('[bounds:'):
+                for j in dict['businesses'][i]['items']:
+                    if j is not None and 'businessCategory' in j and j['businessCategory'] == 'restaurant':
+                        res_code = j["id"]
+                        res_name = j["name"]
+                        res_category = j["category"]
+                        res_lon = j['x']
+                        res_lat = j['y']
+
+                        ## id가 중복되는 경우
+                        if res_code in origin_arr:
+                            continue
+                        find_arr.append(j["id"])
+                        ## DB Insert
+                        query = "SELECT * FROM resturant as res WHERE res.res_code = %s"
+                        parameter = (j["id"],)
+                        result = object.execute_all(query, parameter)
+
+                        # 신규라면
+                        if len(result) == 0:
+                            query = "INSERT INTO resturant (res_code, res_name, res_category, res_lon, res_lat) VALUES (%s, %s, %s, %s, %s)"
+                            parameter = (res_code, res_name, res_category, res_lon, res_lat)
+                            # print("%s %s %s" % (res_code, res_name, res_category))
+                            object.execute(query, parameter)
+                            object.commit()
+                            ########################### multithread
+                            #find_arr.append(j["id"])
+
+                        restaurants.append({
+                            "id": j["id"],
+                            "name": j["name"],
+                            "category": j['category'],
+                            'lon': j['x'], 'lat': j['y'],
+                            'rank':index
+                            # 'rating' : review(j['id'], 0, True) # 추후 성능 개선 후 주석 해제
+                            # 평점을 tab_main에 있는 평점을 가져와도 될 것 같기도 함.
+                        })
+                        # r_ids.append(j['id'])
+        end_time = time.time()
+
+        print("adjust : %d seconds" % (end_time - start_time))
+
+        if index is 0:
+            res_ret = restaurants[0:7] if len(restaurants) >= 7 else restaurants
+            return res_ret, find_arr
+        else:
+            res_ret = restaurants[0:4] if len(restaurants) >= 4 else restaurants
+            return res_ret, find_arr
+
+    def enter_naver3(self, lon, lat, radius, find_num, origin_arr):
+        bounds_arr = GeoUtil.get_bounds(lon, lat, radius)
+
+        url = "https://store.naver.com/restaurants/list?bounds=" + str(bounds_arr[0]) + "%3B" + str(
+            bounds_arr[1]) + "%3B" + str(bounds_arr[2]) + "%3B" + str(
+            bounds_arr[3]) + "&query=%EB%A7%9B%EC%A7%91&sortingOrder=reviewCount"
+
+        print(url)
+        response = requests.get(url)
+        time.sleep(1.5)
+        html = response.text
+
+        restaurants = []  # 분위기별 모든 식당이름을 저장 추후 id로 변경해야함
+        r_ids = []  # id만 모은 배열
+
+        start_str = 'window.PLACE_STATE='
+        end_str = '}</script>'
+        parsing_source = html[html.find(start_str) + len(start_str):html.find(end_str) + 1]
+
+        dict = json.loads(parsing_source)
+        review = self.scrape_review_score
+
+        # test용
+        # from common_utils import APIKeyLoader
+        start_time = time.time()
+        find_arr = []
+
+        add_num = 0
+
+        for i in dict['businesses'].keys():
+            if i.startswith('[bounds:'):
+                for j in dict['businesses'][i]['items']:
+                    if j is not None and 'businessCategory' in j and j['businessCategory'] == 'restaurant':
+                        res_code = j["id"]
+                        res_name = j["name"]
+                        res_category = j["category"]
+                        res_lon = j['x']
+                        res_lat = j['y']
+
+                        ## 개수가 다 차는 경우
+                        if add_num == find_num:
+                            break
+
+                        ## id가 중복되는 경우
+                        if res_code in origin_arr:
+                            continue
+                        find_arr.append(j["id"])
+
+                        add_num += 1
+                        ## DB Insert
+                        query = "SELECT * FROM resturant as res WHERE res.res_code = %s"
+                        parameter = (j["id"],)
+                        result = object.execute_all(query, parameter)
+
+                        # 신규라면
+                        if len(result) == 0:
+                            query = "INSERT INTO resturant (res_code, res_name, res_category, res_lon, res_lat) VALUES (%s, %s, %s, %s, %s)"
+                            parameter = (res_code, res_name, res_category, res_lon, res_lat)
+                            # print("%s %s %s" % (res_code, res_name, res_category))
+                            object.execute(query, parameter)
+                            object.commit()
+
+                        restaurants.append({
+                            "id": j["id"],
+                            "name": j["name"],
+                            "category": j['category'],
+                            'lon': j['x'], 'lat': j['y'],
+                            # 'rating' : review(j['id'], 0, True) # 추후 성능 개선 후 주석 해제
+                            # 평점을 tab_main에 있는 평점을 가져와도 될 것 같기도 함.
+                        })
+                        # r_ids.append(j['id'])
+        end_time = time.time()
+
+        print("adjust : %d seconds" % (end_time - start_time))
+
+        return restaurants, find_arr
+
+        """
+        if index is 0:
+            res_ret = restaurants[0:7] if len(restaurants) >= 7 else restaurants
+            return res_ret, find_arr
+        else:
+            res_ret = restaurants[0:7] if len(restaurants) >= 4 else restaurants
+            return res_ret, find_arr
+        """
 
 
+    def scrape_place(self, lon, lat, radius, email):
+        #restaurants, find_arr = self.enter_naver(lon, lat, radius, email)
 
+        query = "SELECT COUNT(*) as cnt FROM pickupres as p JOIN user as u ON p.usr_code = u.usr_code WHERE u.usr_email = %s"
+        parameter = (email, )
+        zzim_num = object.execute_all(query, parameter)
+
+        restaurants = []
+        find_arr = []
+
+        print(zzim_num[0]['cnt'])
+        if zzim_num[0]['cnt'] >= 20:
+            result = self.zzim(email)
+            print(result)
+            for index in range(len(result)):
+                target_category = result[index]
+                print("index : %d" % index)
+                target_restaurants, target_arr = self.enter_naver2(lon, lat, radius, target_category, index, find_arr)
+                restaurants.extend(target_restaurants)
+                find_arr.extend(target_arr)
+            #print(restaurants)
+            #print(find_arr)
+
+            if len(restaurants) < 20:
+                print(len(restaurants))
+                print(restaurants)
+                tg_restaurants, tg_arr = self.enter_naver3(lon, lat, radius, 20 - len(restaurants), find_arr)
+                restaurants.extend(tg_restaurants)
+                find_arr.extend(tg_arr)
+                print("빵")
+        else:
+            tg_restaurants, tg_arr = self.enter_naver3(lon, lat, radius, 20, find_arr)
+            restaurants.extend(tg_restaurants)
+            find_arr.extend(tg_arr)
+            print("빵")
+
+
+        #if len(find_arr) > 0:
+        #    self.process_thread(find_arr)
+
+
+        print(restaurants)
 
         # 평점 및 대표메뉴 조회
         # DB에 있는 식당만 결과 적용

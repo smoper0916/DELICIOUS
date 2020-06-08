@@ -5,8 +5,8 @@ using UnityEngine;
 public class GPSManager : MonoBehaviour
 {
     public static GPSManager Instance { set; get; }
-    public float latitude;
-    public float longitude;
+    public string latitude;
+    public string longitude;
 
     public float heading;
     public float headingAccuracy;
@@ -81,8 +81,8 @@ public class GPSManager : MonoBehaviour
     {
         if (Input.location.status == LocationServiceStatus.Running)
         {
-            latitude = Input.location.lastData.latitude;
-            longitude = Input.location.lastData.longitude;
+            latitude = Input.location.lastData.latitude.ToString();
+            longitude = Input.location.lastData.longitude.ToString();
 
             heading = -Input.compass.magneticHeading;
             headingAccuracy = Input.compass.headingAccuracy;

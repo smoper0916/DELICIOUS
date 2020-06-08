@@ -223,16 +223,16 @@ public class AnchorManager : MonoBehaviour
         degreesLongitudeInMetersAtEquator = 111319.9f;
 
         //Real GPS Position - This will be the world origin.
-        var gpsLat = 36.1380077f;
-        var gpsLon = 128.4166394f;
+        var gpsLat = "36.1380077";
+        var gpsLon = "128.4166394";
 
         //var gpsLat = GPSManager.Instance.latitude;
         //var gpsLon = GPSManager.Instance.longitude;
 
         dic.Add("url", "restaurants/near");
         dic.Add("method", "GET");
-        dic.Add("lat", gpsLat.ToString());
-        dic.Add("lon", gpsLon.ToString());
+        dic.Add("lat", gpsLat);
+        dic.Add("lon", gpsLon);
         dic.Add("email", Login.userId);
         dic.Add("radius", "500");
 
@@ -249,8 +249,8 @@ public class AnchorManager : MonoBehaviour
         foreach (string k in restaurants.Keys)
         {
             Restaurant restaurant = restaurants[k];
-            var latOffset = (restaurant.y - gpsLat) * degreesLatitudeInMeters;
-            var lonOffset = (restaurant.x - gpsLon) * GetLongitudeDegreeDistance(restaurant.y);
+            var latOffset = (float)(restaurant.y - Double.Parse(gpsLat)) * degreesLatitudeInMeters;
+            var lonOffset = (float)(restaurant.x - Double.Parse(gpsLon)) * GetLongitudeDegreeDistance(restaurant.y);
 
             Vector3 vector3 = new Vector3(latOffset, 0, lonOffset);
 

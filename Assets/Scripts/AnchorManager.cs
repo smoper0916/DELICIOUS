@@ -62,7 +62,7 @@ public class AnchorManager : MonoBehaviour
     void Draw()
     {
         List<Restaurant> resList = new List<Restaurant>(restaurants.Values);
-        for (int i = 0; i < vectors.Count; i++)
+        for (int i = 0; i < 20; i++)
         {
             Pose pose = new Pose(vectors[i], transform.rotation);
 
@@ -79,7 +79,7 @@ public class AnchorManager : MonoBehaviour
             textMeshs[2].text = resList[i].name;
             textMeshs[3].text = resList[i].brief;
 
-            gameObject.transform.localScale = new Vector3(7, 4, 0);
+            gameObject.transform.localScale = new Vector3(18, 13, 0);
             // Debug.Log("Added : " + restaurants[i].name);
             // gameObjects.Add(gameObject);
         }
@@ -234,7 +234,7 @@ public class AnchorManager : MonoBehaviour
         dic.Add("lat", gpsLat.ToString());
         dic.Add("lon", gpsLon.ToString());
         dic.Add("email", Login.userId);
-        dic.Add("radius", "1000");
+        dic.Add("radius", "500");
 
         //IEnumerator sender = serverManager.SendRequest(dic);
         eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Restaurants);
@@ -262,18 +262,42 @@ public class AnchorManager : MonoBehaviour
 
             vector3 = Quaternion.AngleAxis(GPSManager.Instance.heading, Vector3.up) * vector3;
 
-            //if (vector3.magnitude > 50.0f)
-            //{
-            //    vector3 = new Vector3(latOffset, -5.0f, lonOffset);
-            //}
-            //else if (vector3.magnitude > 150.0f)
-            //{
-            //    vector3 = new Vector3(latOffset, -1.0f, lonOffset);
-            //}
-            //else
-            //{
-            //    vector3 = new Vector3(latOffset, 1.0f, lonOffset);
-            //}
+            if (vector3.magnitude < 100.0f)
+            {
+                vector3 = new Vector3(latOffset, -20.0f, lonOffset);
+            }
+            else if (vector3.magnitude < 150.0f)
+            {
+                vector3 = new Vector3(latOffset, 10f, lonOffset);
+            }
+            else if (vector3.magnitude < 200.0f)
+            {
+                vector3 = new Vector3(latOffset, 40.0f, lonOffset);
+            }
+            else if (vector3.magnitude < 250.0f)
+            {
+                vector3 = new Vector3(latOffset, 90.0f, lonOffset);
+            }
+            else if (vector3.magnitude < 300.0f)
+            {
+                vector3 = new Vector3(latOffset, 150.0f, lonOffset);
+            }
+            else if (vector3.magnitude < 350.0f)
+            {
+                vector3 = new Vector3(latOffset, 220.0f, lonOffset);
+            }
+            else if (vector3.magnitude < 400.0f)
+            {
+                vector3 = new Vector3(latOffset, 310.0f, lonOffset);
+            }
+            else if (vector3.magnitude < 450.0f)
+            {
+                vector3 = new Vector3(latOffset, 380.0f, lonOffset);
+            }
+            else
+            {
+                vector3 = new Vector3(latOffset, 460.0f, lonOffset);
+            }
 
             Debug.Log(vector3);
 

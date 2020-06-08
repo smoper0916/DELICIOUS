@@ -58,7 +58,7 @@ public class UserManager : MonoBehaviour
 
 
         var pairs = new Dictionary<string, string>();
-        pairs["url"] = "1" + "/history"; //나중에 유저 id로 바꾸기
+        pairs["url"] = Login.userId + "/history"; //나중에 유저 id로 바꾸기
         pairs["method"] = "GET";
 
         IEnumerator enumerator = handleZzimInfo(pairs);

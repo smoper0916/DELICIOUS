@@ -82,7 +82,7 @@ public class NavigationManager : MonoBehaviour
         CompassMover mover = compassMover.GetComponent<CompassMover>();
 
         // 좋은 각도가 나올때까지 대기.
-        while (mover.isGoodDegree)
+        while (!mover.isGoodDegree)
             yield return new WaitForSeconds(0.1f);
         // mover 삭제
         mover.isDone = true;

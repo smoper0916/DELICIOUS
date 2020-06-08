@@ -29,8 +29,6 @@ public class ToastMaker : MonoBehaviour
 
         context = currentActivity
             .Call<AndroidJavaObject>("getApplicationContext");
-
-        DontDestroyOnLoad(this.gameObject);
     }
 
     public void ShowToast(string message, Gravity gravity = Gravity.VERTICAL_CENTER)

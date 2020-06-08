@@ -24,7 +24,7 @@ public class GPSManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+        //DontDestroyOnLoad(gameObject);
         StartCoroutine(StartLocationService());
     }
 

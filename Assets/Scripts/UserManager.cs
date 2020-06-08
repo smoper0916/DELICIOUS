@@ -12,6 +12,8 @@ public class UserManager : MonoBehaviour
     private ServerManager serverManager = new ServerManager();
     public EventHandler eventHandler;
     private bool flagWakeUp = false;
+    public GameObject detailedRestaurant;
+    public GameObject showInfo;
 
     public Text mailContent;
     public Text nameContent;
@@ -33,6 +35,8 @@ public class UserManager : MonoBehaviour
     public GameObject historyData;
     public GameObject scrollView;
 
+    public AnchorManager.State previousState = AnchorManager.State.MyInfo;
+
     //Image navi;
 
     int num = 10;
@@ -40,6 +44,7 @@ public class UserManager : MonoBehaviour
     void Start()
     {
         
+        //Login.userId = "1"; Login.userPw = "1";
 
         mailContent.text = Login.userId;
 
@@ -47,14 +52,13 @@ public class UserManager : MonoBehaviour
         ageContent.text = Login.age;
       
         sexContent.text = Login.sex;
-
-
+        
 
         UpdateInfo.SetActive(false);
         UnMatchCurrentError.SetActive(false);
         UnMatchChangeError.SetActive(false);
         MyHistory.SetActive(false);
-
+        detailedRestaurant.SetActive(false);
 
 
         var pairs = new Dictionary<string, string>();
@@ -79,6 +83,31 @@ public class UserManager : MonoBehaviour
         //        SceneManager.LoadScene("Main");
         //    }
         //}
+
+        // 상태 변경 감지
+        if (AnchorManager.currentState != previousState)
+        {
+            if (previousState == AnchorManager.State.Detail && AnchorManager.currentState == AnchorManager.State.MyInfo)
+            {
+                showInfo.SetActive(true);
+                MyHistory.SetActive(true);
+            }
+            else if (previousState == AnchorManager.State.MyInfo && AnchorManager.currentState == AnchorManager.State.Detail)
+            {
+                AnchorManager.showCheck = true;
+                detailedRestaurant.SetActive(true);
+                
+
+                MyHistory.SetActive(false);
+                showInfo.SetActive(false);
+            }
+            else
+            {
+                // 아직 잡지 못한 예외
+                ToastMaker.instance.ShowToast("Update: 상태 변화 불일치 중 예외 발생! = " + previousState + " => " + AnchorManager.currentState);
+            }
+        }
+        previousState = AnchorManager.currentState;
     }
     public void clickXbtAthis()
     {
@@ -129,8 +158,8 @@ public class UserManager : MonoBehaviour
             GameObject historyObj = Instantiate(historyData, new Vector3(0, f, 0), Quaternion.identity, scroll.content);
 
             // 상세조회 버튼
-            historyObj.GetComponent<Button>().onClick.AddListener(delegate () { clickList(pair["res_code"].ToString()); });
-            historyObj.GetComponentsInChildren<Button>()[1].onClick.AddListener(delegate () { clickNavi(pair["res_lon"].ToString(), pair["res_lat"].ToString()); });
+            historyObj.GetComponent<Button>().onClick.AddListener(delegate { StartCoroutine(clickList(pair["res_code"].ToString(), pair["res_name"].ToString())); });
+            historyObj.GetComponentsInChildren<Button>()[1].onClick.AddListener(delegate { clickNavi(pair["res_lon"].ToString(), pair["res_lat"].ToString()); });
             list.Add(historyObj);
 
             Text[] historyArr = historyObj.GetComponentsInChildren<Text>();
@@ -157,16 +186,42 @@ public class UserManager : MonoBehaviour
 
     public Button btn;
 
-    public void clickList(string id)
+    public IEnumerator clickList(string id, string name)
     {
         Debug.Log(id);
 
-        
+        flagWakeUp = false;
+        var pairs = new Dictionary<string, string>();
+        pairs["url"] =  id + "/info";
+        pairs["method"] = "GET";
+        eventHandler.onClick(this, serverManager.SendRequest(pairs), EventHandler.HandlingType.Restaurant);
+        while (!flagWakeUp)
+            yield return new WaitForSeconds(0.1f);
+
+        if (eventHandler.result is Restaurant)
+        {
+            Restaurant r = eventHandler.result as Restaurant;
+            // 상세조회
+
+            //ToastMaker.instance.ShowToast("1 전");
+            var desObj = detailedRestaurant.GetComponent<DetailedRestaurantManager>();
+            desObj.restaurantName.text = name;
+            desObj.id = id;
+            desObj.score.text = r.rating.ToString();
+            //ToastMaker.instance.ShowToast("1 후");
+            DetailedRestaurantManager.previous = AnchorManager.State.MyInfo;
+            AnchorManager.currentState = AnchorManager.State.Detail;
+            
+        }
     }
 
     public void clickNavi(string lon, string lat)
     {
         Debug.Log(lon + lat);
+
+        // 길 안내 시작
+
+
     }
 
     public void goBackMain()

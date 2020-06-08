@@ -31,6 +31,7 @@ public class MainDisplay : MonoBehaviour
 
     public void clickOptionBT()
     {
+        AnchorManager.currentState = AnchorManager.State.MyInfo;
         SceneManager.LoadScene("UserInfo", LoadSceneMode.Additive);
     }
 }

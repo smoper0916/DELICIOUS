@@ -10,7 +10,7 @@ public class EventHandler : MonoBehaviour
     public object result = null;
     public bool isDone = false;
 
-    public enum HandlingType { Restaurants, DetailedRestaurant, MyInfo, Default, Menus, Photo, Reviews, Route }
+    public enum HandlingType { Restaurants, Restaurant, DetailedRestaurant, MyInfo, Default, Menus, Photo, Reviews, Route }
     private IEnumerator target;
     private Queue<(MonoBehaviour owner, IEnumerator target, HandlingType type)> events = new Queue<(MonoBehaviour, IEnumerator, HandlingType)>();
 
@@ -44,6 +44,20 @@ public class EventHandler : MonoBehaviour
                                 restaurants.Add(i["id"].ToString(), new Restaurant(i));
                             }
                             result = restaurants;
+                        }
+                        else if (dict.Contains("code"))
+                        {
+                            // 실패된 경우
+                            result = jsonResult;
+                        }
+                        break;
+                    case HandlingType.Restaurant:
+                        if (dict.Contains("restaurant"))
+                        {
+                            Debug.Log(jsonResult["restaurant"]["res_code"].ToString())
+;                            var res = jsonResult["restaurant"];
+                            // 정상처리된 경우
+                            result = new Restaurant(res["res_code"].ToString(), res["res_name"].ToString(), res["res_grade"].ToString());
                         }
                         else if (dict.Contains("code"))
                         {

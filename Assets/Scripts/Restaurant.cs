@@ -27,6 +27,13 @@ public class Restaurant
         PutData(i);
     }
 
+    public Restaurant(string id, string name, string rating)
+    {
+        this.id = id;
+        this.name = name;
+        this.rating = float.Parse(rating);
+    }
+
     public void PutData(JsonData i)
     {
         IDictionary dict = i;

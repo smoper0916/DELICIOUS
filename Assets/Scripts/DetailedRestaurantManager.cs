@@ -92,18 +92,19 @@ public class DetailedRestaurantManager : MonoBehaviour
                 score.text = textMeshs[1].text;
             }
 
-            isInitLikedToggle = true;
-            if (zzim.ContainsKey(id))
+            if (previous != AnchorManager.State.MyInfo)
             {
-                isHeartOn = true;
-                heartBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnHeart_On");
+                if (zzim.ContainsKey(id))
+                {
+                    isHeartOn = true;
+                    heartBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnHeart_On");
+                }
+                else
+                {
+                    isHeartOn = false;
+                    heartBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnHeart_Off");
+                }
             }
-            else
-            {
-                isHeartOn = false;
-                heartBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnHeart_Off");
-            }
-
             AnchorManager.showCheck = false;
 
             selectMenuTap();
@@ -581,32 +582,42 @@ public class DetailedRestaurantManager : MonoBehaviour
 
     public void ClickHeart()
     {
-        if (zzim.ContainsKey(id))
+        if (previous != AnchorManager.State.MyInfo)
         {
-            //AnchorManager.restaurants[id].zzimCheck = false;
-            isHeartOn = false;
-            heartBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnHeart_Off");
-            zzim.Remove(id);
-            Debug.Log(id + "삭제");
-            ToastMaker.instance.ShowToast("찜이 취소되었습니다.");
-        }
-        else
-        {
-            if (zzim.Count < 4)
+            if (zzim.ContainsKey(id))
             {
-                //AnchorManager.restaurants[id].zzimCheck = true;
-                isHeartOn = true;
-                heartBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnHeart_On");
-                zzim[id] = AnchorManager.restaurants[id];
-                ToastMaker.instance.ShowToast("찜이 등록되었습니다.");
+                //AnchorManager.restaurants[id].zzimCheck = false;
+                isHeartOn = false;
+                heartBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnHeart_Off");
+                zzim.Remove(id);
+                Debug.Log(id + "삭제");
+                ToastMaker.instance.ShowToast("찜이 취소되었습니다.");
             }
             else
             {
-                isHeartOn = false;
-                heartBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnHeart_Off");
-                Debug.Log("찜목록은 최대 4개까지 가능");
-                ToastMaker.instance.ShowToast("찜 인벤토리가 꽉 찼습니다. 찜은 4개까지만 가능합니다.");
+                if (zzim.Count < 4)
+                {
+                    //AnchorManager.restaurants[id].zzimCheck = true;
+                    isHeartOn = true;
+                    heartBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnHeart_On");
+                    zzim[id] = AnchorManager.restaurants[id];
+                    ToastMaker.instance.ShowToast("찜이 등록되었습니다.");
+                }
+                else
+                {
+                    isHeartOn = false;
+                    heartBtn.GetComponent<Image>().sprite = Resources.Load<Sprite>("btnHeart_Off");
+                    Debug.Log("찜목록은 최대 4개까지 가능");
+                    ToastMaker.instance.ShowToast("찜 인벤토리가 꽉 찼습니다. 찜은 4개까지만 가능합니다.");
+                }
             }
+        }
+        else
+        {
+            // 찜 이력 내 식당의 상세조회라면
+            // 찜 불가
+            ToastMaker.instance.ShowToast("찜 이력 화면에서는 찜을 하실 수 없습니다.");
+
         }
     }
 

@@ -65,19 +65,20 @@ class NaverScraper:
                 soup = BeautifulSoup(driver.page_source, 'html.parser')
         bizinfo_area = soup.find("div", {"class": "bizinfo_area"})  # 모든 기본 정보가 담긴 div
         # biz_message_area = soup.find("div", {"class": "default_info_area biz_message_area"})  # N페이 예약 혜택
+        if bizinfo_area is not None:
 
-        '''
-            biztime : 영업시간 / telephone : 전화번호 / addr : 도로명주소 / homepage : 홈페이지 / convenience : 편의시설
-            tv_history : TV 출연내역 / desc : 식당 설명
-        '''
-        for key_name, (tag_name, tag_class) in zip(
-                ["biztime", "telephone", "addr", "convenience", "tv_history", "desc"],
-                [("div", "biztime_row"), ("div", "list_item list_item_biztel"), ("span", "addr"),
-                 ("div", "convenience"), ("div", "list_item list_item_tv"),
-                 ("div", "list_item list_item_desc"), ]):
-            parsed = bizinfo_area.find(tag_name, {"class": tag_class})  # Business Time
-            if parsed is not None:
-                info_dict[key_name] = parsed.text
+            '''
+                biztime : 영업시간 / telephone : 전화번호 / addr : 도로명주소 / homepage : 홈페이지 / convenience : 편의시설
+                tv_history : TV 출연내역 / desc : 식당 설명
+            '''
+            for key_name, (tag_name, tag_class) in zip(
+                    ["biztime", "telephone", "addr", "convenience", "tv_history", "desc"],
+                    [("div", "biztime_row"), ("div", "list_item list_item_biztel"), ("span", "addr"),
+                     ("div", "convenience"), ("div", "list_item list_item_tv"),
+                     ("div", "list_item list_item_desc"), ]):
+                parsed = bizinfo_area.find(tag_name, {"class": tag_class})  # Business Time
+                if parsed is not None:
+                    info_dict[key_name] = parsed.text
 
         # Not None Value 채워넣기
         # for key_name, value in [('nlink', nlink), ('npay_msg', biz_message_area)]:
@@ -507,7 +508,7 @@ class NaverScraper:
         #return restaurants, find_arr
 
     def enter_naver2(self, lon, lat, radius, target_category, index, origin_arr):
-        print(origin_arr)
+        #print(origin_arr)
         bounds_arr = GeoUtil.get_bounds(lon, lat, radius)
 
         #convert_str = target_category.encode('UTF-8')
@@ -680,33 +681,36 @@ class NaverScraper:
 
         restaurants = []
         find_arr = []
+        try:
+            print(zzim_num[0]['cnt'])
+            if zzim_num[0]['cnt'] >= 20:
+                result = self.zzim(email)
+                #print(len(result))
+                for index in range(len(result)):
+                    target_category = result[index]
+                    print("index : %d" % index)
+                    target_restaurants, target_arr = self.enter_naver2(lon, lat, radius, target_category, index, find_arr)
+                    restaurants.extend(target_restaurants)
+                    find_arr.extend(target_arr)
+                #print(restaurants)
+                #print(find_arr)
 
-        print(zzim_num[0]['cnt'])
-        if zzim_num[0]['cnt'] >= 20:
-            result = self.zzim(email)
-            print(result)
-            for index in range(len(result)):
-                target_category = result[index]
-                print("index : %d" % index)
-                target_restaurants, target_arr = self.enter_naver2(lon, lat, radius, target_category, index, find_arr)
-                restaurants.extend(target_restaurants)
-                find_arr.extend(target_arr)
-            #print(restaurants)
-            #print(find_arr)
-
-            if len(restaurants) < 20:
-                print(len(restaurants))
-                print(restaurants)
-                tg_restaurants, tg_arr = self.enter_naver3(lon, lat, radius, 20 - len(restaurants), find_arr)
+                if len(restaurants) < 20:
+                    print(len(restaurants))
+                    #print(restaurants)
+                    tg_restaurants, tg_arr = self.enter_naver3(lon, lat, radius, 20 - len(restaurants), find_arr)
+                    restaurants.extend(tg_restaurants)
+                    find_arr.extend(tg_arr)
+                    #print("빵")
+            else:
+                tg_restaurants, tg_arr = self.enter_naver3(lon, lat, radius, 20, find_arr)
                 restaurants.extend(tg_restaurants)
                 find_arr.extend(tg_arr)
-                print("빵")
-        else:
-            tg_restaurants, tg_arr = self.enter_naver3(lon, lat, radius, 20, find_arr)
+                #print("빵")
+        except:
+            tg_restaurants, tg_arr = self.enter_naver3(lon, lat, radius, 20 - len(restaurants), find_arr)
             restaurants.extend(tg_restaurants)
             find_arr.extend(tg_arr)
-            print("빵")
-
 
         #if len(find_arr) > 0:
         #    self.process_thread(find_arr)

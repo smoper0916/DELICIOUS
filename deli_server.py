@@ -95,7 +95,7 @@ def browse_restaurants2():
     # 네이버 플레이스 파싱
     start = time.time()
     print("lon : %f, lat : %f, radius : %d, email : %s" %(lon, lat, radius, email))
-    result_dict['restaurants'] = n_scraper.scrape_place(lon, lat, radius, email=1)
+    result_dict['restaurants'] = n_scraper.scrape_place(lon, lat, radius, email=1 if email is None else email)
 
     print("속도 : ", time.time() - start)
 

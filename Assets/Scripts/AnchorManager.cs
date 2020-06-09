@@ -243,6 +243,7 @@ public class AnchorManager : MonoBehaviour
         // 기존 Objects Destory
         foreach (var i in gameObjects)
             Destroy(i);
+        gameObjects.Clear();
         StartCoroutine(loadRestaurantsWithCondition());
         isResearchOn = false;
         researchPanel.SetActive(false);
@@ -288,6 +289,7 @@ public class AnchorManager : MonoBehaviour
         dic.Add("category", category);
         dic.Add("radius", "500");
 
+        flagWakeUp = false;
         eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Restaurants);
 
         while (!flagWakeUp)
@@ -304,7 +306,8 @@ public class AnchorManager : MonoBehaviour
                 Debug.Log("=============");
                 Debug.Log("lat : " + gpsLat);
                 Debug.Log("lon : " + gpsLon);
-
+                ToastMaker.instance.ShowToast("Lat : " + gpsLat + ", Lon : " + gpsLon);
+                ToastMaker.instance.ShowToast("LatOffset : " + latOffset + ", LonOffset : " + lonOffset);
                 Debug.Log("latOffset : " + latOffset);
                 Debug.Log("lonOffset : " + lonOffset);
                 Debug.Log("=============");
@@ -372,7 +375,8 @@ public class AnchorManager : MonoBehaviour
         else
         {
             // 에러
-            ToastMaker.instance.ShowToast("로딩 중 에러가 발생하였습니다.");
+            ToastMaker.instance.ShowToast("로딩 중 문제가 발생하였습니다. 다시 시도해주세요.");
+            Destroy(loadingBar.gameObject);
         }
     }
 

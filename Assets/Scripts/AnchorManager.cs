@@ -257,14 +257,32 @@ public class AnchorManager : MonoBehaviour
         loadingManager.step = 90f;
         loadingManager.ToggleUpdateFlag();
 
-        var gpsLat = GPSManager.Instance.latitude;
-        var gpsLon = GPSManager.Instance.longitude;
+        float[] Lats = new float[5];
+        float[] Lons = new float[5];
+
+
+        float gpsLat = 0.0f;
+        float gpsLon = 0.0f;
+
+        for (int i = 0; i < 5; i++)
+        {
+            Lats[i] = float.Parse(GPSManager.Instance.latitude);
+            Lons[i] = float.Parse(GPSManager.Instance.longitude);
+        }
+        for (int j = 0; j < 5; j++)
+        {
+            gpsLat = gpsLat + Lats[j];
+            gpsLon = gpsLon + Lons[j];
+        }
+
+        gpsLat = gpsLat / 5;
+        gpsLon = gpsLon / 5;
 
         dic.Clear();
         dic.Add("url", "restaurants/research");
         dic.Add("method", "GET");
-        dic.Add("lat", gpsLat);
-        dic.Add("lon", gpsLon);
+        dic.Add("lat", gpsLat.ToString());
+        dic.Add("lon", gpsLon.ToString());
         dic.Add("mood", mood);
         dic.Add("category", category);
         dic.Add("radius", "500");
@@ -280,8 +298,11 @@ public class AnchorManager : MonoBehaviour
             foreach (string k in restaurants.Keys)
             {
                 Restaurant restaurant = restaurants[k];
-                var latOffset = (float)(restaurant.y - double.Parse(gpsLat)) * degreesLatitudeInMeters;
-                var lonOffset = (float)(restaurant.x - double.Parse(gpsLon)) * GetLongitudeDegreeDistance(restaurant.x);
+                var latOffset = (restaurant.y - gpsLat) * degreesLatitudeInMeters;
+                var lonOffset = (restaurant.x - gpsLon) * GetLongitudeDegreeDistance(restaurant.x);
+                Debug.Log("=============");
+                Debug.Log("lat : " + gpsLat);
+                Debug.Log("lon : " + gpsLon);
 
                 Debug.Log("latOffset : " + latOffset);
                 Debug.Log("lonOffset : " + lonOffset);

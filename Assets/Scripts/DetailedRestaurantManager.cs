@@ -83,7 +83,7 @@ public class DetailedRestaurantManager : MonoBehaviour
         {
             txt = "";
             this.target = AnchorManager.target;
-
+            ToastMaker.instance.ShowToast("OKOK");
             if (previous == AnchorManager.State.Browse)
             {
                 textMeshs = target.GetComponentsInChildren<TextMesh>();

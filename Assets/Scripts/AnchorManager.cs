@@ -26,6 +26,8 @@ public class AnchorManager : MonoBehaviour
     public static bool showCheck = false;
     public GameObject detailedRestaurantManager;
     public GameObject compassMoverData;
+    public GameObject loadingBarData;
+    public GameObject loadingBar;
 
     float degreesLongitudeInMetersAtEquator;
     private bool flagWakeUp = false;
@@ -34,8 +36,13 @@ public class AnchorManager : MonoBehaviour
     GpsCalc gpsCalc = new GpsCalc();
 
     public GameObject canvas;
-    public GameObject loadingBar;
     public GameObject zzimData;
+
+    public GameObject researchPanel;
+    public Button[] moodButtons;
+    public Button[] categoryButtons;
+    public bool isResearchOn = false;
+    public string mood = ""; public string category = "";
 
     public List<GameObject> zzimObjList = new List<GameObject>();
 
@@ -50,16 +57,33 @@ public class AnchorManager : MonoBehaviour
     float heading;
     int backKeyCnt = 0;
 
+    // Conversion factors
+    float degreesLatitudeInMeters = 111132;
+    
+
     private void Awake()
     {
-        //DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(gameObject);
     }
     private void Start()
     {
         currentState = State.Browse;
         previousState = State.Browse;
+        loadingBar = Instantiate(loadingBarData, canvas.transform);
+        loadingBar.SetActive(true);
         loadingManager = loadingBar.transform.Find("vica").gameObject.GetComponent<LoadingManager>();
         StartCoroutine(loadRestaurants());
+
+        foreach (var i in moodButtons)
+        {
+            i.onClick.AddListener(delegate { OnClickMoods(i); });
+            i.image.color = new Color(i.image.color.r, i.image.color.g, i.image.color.b, 0.7f);
+        }
+        foreach (var i in categoryButtons)
+        {
+            i.onClick.AddListener(delegate { OnClickCategories(i); });
+            i.image.color = new Color(i.image.color.r, i.image.color.g, i.image.color.b, 0.7f);
+        }
     }
 
     void Draw()
@@ -77,6 +101,11 @@ public class AnchorManager : MonoBehaviour
             gameObject.transform.rotation = Looking(gameObject.transform.position, transform.position);
             textMeshs = gameObject.GetComponentsInChildren<TextMesh>();
 
+            if (resList[i].rank == 0)
+            {
+                textMeshs[2].color = new Color(255, 171, 0, 161);
+                textMeshs[2].fontStyle = FontStyle.Bold;
+            }
             textMeshs[0].text = resList[i].id;
             textMeshs[1].text = resList[i].rating.ToString();
             textMeshs[2].text = resList[i].name;
@@ -207,6 +236,124 @@ public class AnchorManager : MonoBehaviour
         }
         
     }
+
+    public void OnClickReSearchBtn()
+    {
+        // 기존 Objects Destory
+        foreach (var i in gameObjects)
+            Destroy(i);
+        StartCoroutine(loadRestaurantsWithCondition());
+        isResearchOn = false;
+        researchPanel.SetActive(false);
+    }
+    private IEnumerator loadRestaurantsWithCondition()
+    {
+        degreesLongitudeInMetersAtEquator = 111319.9f;
+
+        loadingBar = Instantiate(loadingBarData, canvas.transform);
+        loadingBar.SetActive(true);
+        loadingManager = loadingBar.transform.Find("vica").gameObject.GetComponent<LoadingManager>();
+        loadingManager.state = "서버로부터 해당 조건의 식당 정보 탐색 중...";
+        loadingManager.step = 90f;
+        loadingManager.ToggleUpdateFlag();
+
+        var gpsLat = GPSManager.Instance.latitude;
+        var gpsLon = GPSManager.Instance.longitude;
+
+        dic.Clear();
+        dic.Add("url", "restaurants/research");
+        dic.Add("method", "GET");
+        dic.Add("lat", gpsLat);
+        dic.Add("lon", gpsLon);
+        dic.Add("mood", mood);
+        dic.Add("category", category);
+        dic.Add("radius", "500");
+
+        eventHandler.onClick(this, serverManager.SendRequest(dic), EventHandler.HandlingType.Restaurants);
+
+        while (!flagWakeUp)
+            yield return new WaitForSeconds(1.0f);
+
+        if (eventHandler.result is Dictionary<string, Restaurant>)
+        {
+            restaurants = eventHandler.result as Dictionary<string, Restaurant>;
+            foreach (string k in restaurants.Keys)
+            {
+                Restaurant restaurant = restaurants[k];
+                var latOffset = (float)(restaurant.y - double.Parse(gpsLat)) * degreesLatitudeInMeters;
+                var lonOffset = (float)(restaurant.x - double.Parse(gpsLon)) * GetLongitudeDegreeDistance(restaurant.x);
+
+                Debug.Log("latOffset : " + latOffset);
+                Debug.Log("lonOffset : " + lonOffset);
+                Debug.Log("=============");
+
+                //var distance = gpsCalc.distance(float.Parse(gpsLat), float.Parse(gpsLon), restaurant.y, restaurant.x);
+                //var degree = gpsCalc.bearingP1toP2(float.Parse(gpsLat), float.Parse(gpsLon), restaurant.y, restaurant.x);
+                Vector3 vector3 = new Vector3(latOffset, 0, lonOffset);
+
+                //Vector3 vector3 = Vector3.forward * (float)distance;
+
+                //Quaternion qRotate = Quaternion.Euler(0f, degree-180, 0f);
+                //vector3 = qRotate * vector3;
+
+                //heading = Quaternion.LookRotation(Camera.main.transform.TransformDirection(GPSManager.Instance.headingVector)).eulerAngles.y;
+
+
+                //vector3 = Quaternion.AngleAxis((-GPSManager.Instance., Vector3.up) * vector3;
+
+                
+                if (vector3.magnitude < 100.0f)
+                {
+                    vector3.y = -20.0f;
+                }
+                else if (vector3.magnitude < 150.0f)
+                {
+                    vector3.y = 10.0f;
+                }
+                else if (vector3.magnitude < 200.0f)
+                {
+                    vector3.y = 40.0f;
+                }
+                else if (vector3.magnitude < 250.0f)
+                {
+                    vector3.y = 90.0f;
+                }
+                else if (vector3.magnitude < 300.0f)
+                {
+                    vector3.y = 150.0f;
+                }
+                else if (vector3.magnitude < 350.0f)
+                {
+                    vector3.y = 220.0f;
+                }
+                else if (vector3.magnitude < 400.0f)
+                {
+                    vector3.y = 310.0f;
+                }
+                else if (vector3.magnitude < 450.0f)
+                {
+                    vector3.y = 380.0f;
+                }
+                else
+                {
+                    vector3.y = 460.0f;
+                }
+                
+                
+                Debug.Log(vector3);
+
+                vectors.Add(vector3);
+            }
+            Destroy(loadingBar.gameObject);
+            Draw();
+        }
+        else
+        {
+            // 에러
+            ToastMaker.instance.ShowToast("로딩 중 에러가 발생하였습니다.");
+        }
+    }
+
     private IEnumerator loadRestaurants()
     {
         loadingManager.state = "GPS 신호 수신 중...";
@@ -222,9 +369,7 @@ public class AnchorManager : MonoBehaviour
         loadingManager.step = 60f;
         loadingManager.ToggleUpdateFlag();
 
-        // Conversion factors
-        float degreesLatitudeInMeters = 111132;
-        degreesLongitudeInMetersAtEquator = 111319.9f;
+        
 
         //Real GPS Position - This will be the world origin.
         //var gpsLat = "36.1380077";
@@ -233,7 +378,8 @@ public class AnchorManager : MonoBehaviour
         var gpsLat = GPSManager.Instance.latitude;
         var gpsLon = GPSManager.Instance.longitude;
 
-        dic.Add("url", "restaurants/near");
+        dic.Clear();
+        dic.Add("url", "restaurants/near2");
         dic.Add("method", "GET");
         dic.Add("lat", gpsLat);
         dic.Add("lon", gpsLon);
@@ -288,6 +434,7 @@ public class AnchorManager : MonoBehaviour
 
             //vector3 = Quaternion.AngleAxis((-GPSManager.Instance., Vector3.up) * vector3;
 
+            
             if (vector3.magnitude < 100.0f)
             {
                 vector3.y = -20.0f;
@@ -324,7 +471,7 @@ public class AnchorManager : MonoBehaviour
             {
                 vector3.y = 460.0f;
             }
-
+            
             Debug.Log(vector3);
 
             vectors.Add(vector3);
@@ -363,6 +510,40 @@ public class AnchorManager : MonoBehaviour
             Debug.Log("Waiting...");
             yield return new WaitForSeconds(1.0f);
         }
+    }
+
+    public void OnClickReSearch()
+    {
+        if (isResearchOn)
+        { 
+            researchPanel.SetActive(false);
+            isResearchOn = false;
+        }
+        else
+        {
+            researchPanel.SetActive(true);
+            isResearchOn = true;
+        }
+        
+    }
+
+    public void OnClickMoods(Button sender)
+    {
+        foreach(var i in moodButtons)
+        {
+            i.image.color = new Color(i.image.color.r, i.image.color.g, i.image.color.b, 0.7f);
+        }
+        sender.image.color = new Color(sender.image.color.r, sender.image.color.g, sender.image.color.b, 1f);
+        mood = sender.GetComponentInChildren<Text>().text;
+    }
+    public void OnClickCategories(Button sender)
+    {
+        foreach (var i in categoryButtons)
+        {
+            i.image.color = new Color(i.image.color.r, i.image.color.g, i.image.color.b, 0.7f);
+        }
+        sender.image.color = new Color(sender.image.color.r, sender.image.color.g, sender.image.color.b, 1f);
+        category = sender.GetComponentInChildren<Text>().text;
     }
 
     public void ClickZzimBtn()

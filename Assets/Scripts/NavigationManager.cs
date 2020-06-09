@@ -16,7 +16,6 @@ public class NavigationManager : MonoBehaviour
     Dictionary<string, string> dic = new Dictionary<string, string>();
     List<double> dis = new List<double>();
 
-    public GameObject NavPrefab;
     public GameObject WayPrefab;
     public GameObject Destination;
 
@@ -36,8 +35,8 @@ public class NavigationManager : MonoBehaviour
     int idx = 0;
     bool checkWayPoint = false;
 
-    public static string lon = "128.395736";
-    public static string lat = "36.141119";
+    public static string lon = "";
+    public static string lat = "";
 
     //public GameObject canvas;
     //public GameObject loadingBar;
@@ -55,8 +54,6 @@ public class NavigationManager : MonoBehaviour
                 checkWayPoint = true;
                 wayPointsGameObject[idx].SetActive(true);
                 ToastMaker.instance.ShowToast("그려지나?");
-                if (idx != vectors.Count - 2)
-                    idx++;
 
                 //Debug.Log(idx);
                 //Debug.Log(wayPointsGameObject[idx].gameObject.tag);
@@ -101,14 +98,18 @@ public class NavigationManager : MonoBehaviour
 
         Debug.Log(Camera.main.transform.position);
 
-        arrow = Instantiate(NavPrefab, new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y - 0.55f, Camera.main.transform.position.z + 0.25f), NavPrefab.transform.rotation, Camera.main.transform);
-        //InvokeRepeating("CheckDegree", 5, 5);
+        arrow = Camera.main.transform.Find("arrows").gameObject;
+        arrow.SetActive(true);
+
+        //arrow = Instantiate(NavPrefab, new Vector3(0, - 0.55f, 0), NavPrefab.transform.rotation, Camera.main.transform);
+        InvokeRepeating("CheckDegree", 5, 5);
         InvokeRepeating("CheckDistance", 7.0f, 0.5f);
     }
 
     private void CheckDistance()
     {
-        var distance = GpsCalc.distance(double.Parse(GPSManager.Instance.latitude), double.Parse(GPSManager.Instance.longitude), double.Parse(wayPoints[idx].lat), double.Parse(wayPoints[idx].lon));
+        double distance = GpsCalc.distance(double.Parse(GPSManager.Instance.latitude), double.Parse(GPSManager.Instance.longitude), double.Parse(wayPoints[idx].lat), double.Parse(wayPoints[idx].lon));
+        ToastMaker.instance.ShowToast(distance.ToString());
         if (dis[idx] * 0.2f >= distance)
         {
             if (idx != vectors.Count - 2)
@@ -153,7 +154,7 @@ public class NavigationManager : MonoBehaviour
 
         //Debug.Log(GPSManager.Instance.heading);
 
-        //ToastMaker.instance.ShowToast("WayP 길이 : " + wayPoints.Count);
+        ToastMaker.instance.ShowToast("WayP 길이 : " + wayPoints.Count);
         Debug.Log("WayP 길이 : " + wayPoints.Count);
 
         foreach (WayPoint wayPoint in wayPoints)
@@ -165,8 +166,8 @@ public class NavigationManager : MonoBehaviour
             Debug.Log(string.Format("{0},{1}", wayPoint.lat, wayPoint.lon));
             //ToastMaker.instance.ShowToast(string.Format("{0},{1}", wayPoint.lat, wayPoint.lon));
 
-            var latOffset = (double.Parse(wayPoint.lat) - double.Parse(gpsLat) * degreesLatitudeInMeters);
-            var lonOffset = (double.Parse(wayPoint.lon) - double.Parse(gpsLon) * GetLongitudeDegreeDistance(float.Parse(wayPoint.lon)));
+            var latOffset = ((double.Parse(wayPoint.lat) - double.Parse(gpsLat)) * degreesLatitudeInMeters);
+            var lonOffset = (double.Parse(wayPoint.lon) - double.Parse(gpsLon)) * GetLongitudeDegreeDistance(float.Parse(wayPoint.lon));
 
             Vector3 vector3 = new Vector3((float)latOffset, 0, (float)lonOffset);
 
@@ -174,11 +175,11 @@ public class NavigationManager : MonoBehaviour
 
             //vector3 = Quaternion.AngleAxis(GPSManager.Instance.heading, Vector3.up) * vector3;
 
-            //Debug.Log(vector3);
+            Debug.Log(vector3);
 
             vectors.Add(vector3);
 
-            Pose pose = new Pose(vector3, Quaternion.identity);
+            Pose pose = new Pose(vector3, Quaternion.Euler(0, 0, 0));
             Anchor anchor = Session.CreateAnchor(pose);
 
             anchors.Add(anchor);
@@ -216,8 +217,6 @@ public class NavigationManager : MonoBehaviour
 
     public void DrawCheckPoint()
     {
-
-
         for (int i = 0; i < anchors.Count - 2; i++)
         {
             wayPoint = Instantiate(WayPrefab, anchors[i].transform.position, WayPrefab.transform.rotation, anchors[i].transform);
@@ -232,6 +231,7 @@ public class NavigationManager : MonoBehaviour
         wayPoint.SetActive(false);
 
         flagCreate = true;
+        checkWayPoint = false;
 
     }
     private float GetLongitudeDegreeDistance(float latitude)

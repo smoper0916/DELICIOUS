@@ -72,7 +72,7 @@ public class GPSManager : MonoBehaviour
         //Loop forever to get GPS updates
         while (isRunning)
         {
-            yield return new WaitForSeconds(1.0f);
+            yield return new WaitForSeconds(0.5f);
             UpdateGPS();
         }
     }

@@ -129,6 +129,7 @@ public class AnchorManager : MonoBehaviour
 
     void Update()
     {
+       // Debug.Log(GPSManager.Instance.latitude + "\n" + GPSManager.Instance.longitude);
         // 상태 변경 감지
         if(currentState != previousState)
         {
@@ -395,15 +396,32 @@ public class AnchorManager : MonoBehaviour
         //Real GPS Position - This will be the world origin.
         //var gpsLat = "36.1380077";
         //var gpsLon = "128.4166394";
+        float[] Lats = new float[5];
+        float[] Lons = new float[5];
 
-        var gpsLat = GPSManager.Instance.latitude;
-        var gpsLon = GPSManager.Instance.longitude;
+
+        float gpsLat = 0.0f;
+        float gpsLon = 0.0f;
+
+        for(int i = 0; i < 5; i++)
+        {
+            Lats[i] = float.Parse(GPSManager.Instance.latitude);
+            Lons[i] = float.Parse(GPSManager.Instance.longitude);
+        }
+        for(int j = 0; j < 5; j++)
+        {
+            gpsLat = gpsLat + Lats[j];
+            gpsLon = gpsLon + Lons[j];
+        }
+
+        gpsLat = gpsLat / 5;
+        gpsLon = gpsLon / 5;
 
         dic.Clear();
         dic.Add("url", "restaurants/near2");
         dic.Add("method", "GET");
-        dic.Add("lat", gpsLat);
-        dic.Add("lon", gpsLon);
+        dic.Add("lat", gpsLat.ToString());
+        dic.Add("lon", gpsLon.ToString());
         dic.Add("email", Login.userId);
         dic.Add("radius", "500");
 
@@ -434,9 +452,11 @@ public class AnchorManager : MonoBehaviour
         foreach (string k in restaurants.Keys)
         {
             Restaurant restaurant = restaurants[k];
-            var latOffset = (float)(restaurant.y - double.Parse(gpsLat)) * degreesLatitudeInMeters;
-            var lonOffset = (float)(restaurant.x - double.Parse(gpsLon)) * GetLongitudeDegreeDistance(restaurant.x);
-
+            var latOffset = (restaurant.y - gpsLat) * degreesLatitudeInMeters;
+            var lonOffset = (restaurant.x - gpsLon) * GetLongitudeDegreeDistance(restaurant.x);
+            Debug.Log("=============");
+            Debug.Log("lat : " + gpsLat);
+            Debug.Log("lon : " + gpsLon);
             Debug.Log("latOffset : " + latOffset);
             Debug.Log("lonOffset : " + lonOffset);
             Debug.Log("=============");
@@ -447,13 +467,13 @@ public class AnchorManager : MonoBehaviour
 
             //Vector3 vector3 = Vector3.forward * (float)distance;
 
-            //Quaternion qRotate = Quaternion.Euler(0f, degree-180, 0f);
+            //Quaternion qRotate = Quaternion.Euler(0f, 180, 0f);
             //vector3 = qRotate * vector3;
 
             //heading = Quaternion.LookRotation(Camera.main.transform.TransformDirection(GPSManager.Instance.headingVector)).eulerAngles.y;
 
 
-            //vector3 = Quaternion.AngleAxis((-GPSManager.Instance., Vector3.up) * vector3;
+            //vector3 = Quaternion.AngleAxis(degree, Vector3.up) * vector3;
 
             
             if (vector3.magnitude < 100.0f)

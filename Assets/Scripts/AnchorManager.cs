@@ -306,8 +306,8 @@ public class AnchorManager : MonoBehaviour
                 Debug.Log("=============");
                 Debug.Log("lat : " + gpsLat);
                 Debug.Log("lon : " + gpsLon);
-                ToastMaker.instance.ShowToast("Lat : " + gpsLat + ", Lon : " + gpsLon);
-                ToastMaker.instance.ShowToast("LatOffset : " + latOffset + ", LonOffset : " + lonOffset);
+                //ToastMaker.instance.ShowToast("Lat : " + gpsLat + ", Lon : " + gpsLon);
+                //ToastMaker.instance.ShowToast("LatOffset : " + latOffset + ", LonOffset : " + lonOffset);
                 Debug.Log("latOffset : " + latOffset);
                 Debug.Log("lonOffset : " + lonOffset);
                 Debug.Log("=============");

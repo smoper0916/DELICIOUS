@@ -382,6 +382,7 @@ public class AnchorManager : MonoBehaviour
 
     private IEnumerator loadRestaurants()
     {
+        degreesLongitudeInMetersAtEquator = 111319.9f;
         loadingManager.state = "GPS 신호 수신 중...";
         loadingManager.step = 30f;
         loadingManager.ToggleUpdateFlag();

@@ -81,7 +81,7 @@ public class CompassMover : MonoBehaviour
             image.transform.rotation = Quaternion.Euler(0, 0, heading);
             angleText.text = heading.ToString();
 
-            if (heading < 3 || heading > 357)
+            if (heading <= 2 && heading >= 0)
             {
                 guideText.text = "조정 중...";
                 isGoodDegree = true;

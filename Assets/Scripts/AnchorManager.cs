@@ -103,11 +103,11 @@ public class AnchorManager : MonoBehaviour
 
             if (resList[i].rank == 0)
             {
-                textMeshs[2].color = new Color(255, 171, 0, 161);
+                textMeshs[2].color = new Color(255, 0, 0);
                 textMeshs[2].fontStyle = FontStyle.Bold;
             }
             textMeshs[0].text = resList[i].id;
-            textMeshs[1].text = resList[i].rating.ToString();
+            textMeshs[1].text = (resList[i].rating == -1  ? "평점 없음" : resList[i].rating.ToString());
             textMeshs[2].text = resList[i].name;
             textMeshs[3].text = resList[i].brief;
 
@@ -686,7 +686,7 @@ public class AnchorManager : MonoBehaviour
                     // 해당 찜의 정보 표출
                     txtComponents[1].text = zzim[i].Value.rating.ToString();
                     txtComponents[2].text = zzim[i].Value.name;
-                    txtComponents[3].text = "대표메뉴가\n없습니다."; // 대표메뉴인데.. 모르겠다.
+                    txtComponents[3].text = (zzim[i].Value.brief == null ? "대표메뉴가\n없습니다." : zzim[i].Value.brief); // 대표메뉴인데.. 모르겠다.
 
                     // 찜에 맞는 OnClickListener 등록
                     btnComponents[1].onClick.AddListener(delegate { OnClickZzimPanelButtons(resId, resName, resRating, ZzimEventType.DELETE); });

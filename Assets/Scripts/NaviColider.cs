@@ -23,13 +23,17 @@ public class NaviColider : MonoBehaviour
         if (other.gameObject.tag == "wayPoint")
         {
             Debug.Log("충돌충돌충돌충돌충돌충돌충돌충돌");
+            //NavigationManager.idx++;
+            NavigationManager.checkWayPoint = false;
             Destroy(other.gameObject);
         }
         else if (other.CompareTag("destination"))
         {
             Destroy(other.gameObject);
-           //arrow.SetActive(false);
+            NavigationManager.checkWayPoint = false;
+            //arrow.SetActive(false);
 
+            ToastMaker.instance.ShowToast("도착했습니다");
             //이력 등록
 
 

@@ -32,8 +32,8 @@ public class NavigationManager : MonoBehaviour
 
     float heading;
     float degree;
-    int idx = 0;
-    bool checkWayPoint = false;
+    public static int idx = 0;
+    public static bool checkWayPoint = false;
 
     public static string lon = "";
     public static string lat = "";
@@ -53,7 +53,7 @@ public class NavigationManager : MonoBehaviour
             {
                 checkWayPoint = true;
                 wayPointsGameObject[idx].SetActive(true);
-                ToastMaker.instance.ShowToast("그려지나?");
+                //ToastMaker.instance.ShowToast("그려지나?");
 
                 //Debug.Log(idx);
                 //Debug.Log(wayPointsGameObject[idx].gameObject.tag);

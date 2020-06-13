@@ -367,6 +367,9 @@ public class DetailedRestaurantManager : MonoBehaviour
 
             RawImage rawPhoto1 = insidePhoto1.AddComponent<RawImage>();
 
+            var onClick1 = insidePhoto1.AddComponent<PictureOnClickListener>();
+            onClick1.action += () => Debug.Log("Test");
+
             IEnumerator sender = downloadPhoto(urls[i], rawPhoto1);
             while (sender.MoveNext())
             {
